@@ -8,15 +8,20 @@
  * @link GitHub https://github.com/alextselegidis/SpaceGuard
  * @link Live http://alextselegidis.com/spaceguard
  * 
+ * Version 1.0 
  * @task Power ups - shield and explosion
  * @task Add Score
  * @task Stats display
  * @task Display Menus
  * @taks Add sound
  * @task Add graphics
+ * @task Adjust resolution for smooth animation
  **********************************************************************************/
 
 // Global Constants
+var SCALE = 0.5;
+var CANVAS_WIDTH = 800;
+var CANVAS_HEIGHT = 600;
 var KEY_ESCAPE = 27;
 var LOOP_DELAY = 10;
 
@@ -29,22 +34,24 @@ var SpaceGuard = function() {
     inst.guard = {
         x: undefined,
         y: undefined,
-        width: 30,
-        height: 30,
+        width: 30 * SCALE,
+        height: 30 * SCALE,
         shield: 100
     };
     inst.starship = {
         x: undefined,
         y: undefined,
-        width: 100,
-        height: 100,
+        width: 100 * SCALE,
+        height: 100 * SCALE,
         shield: 100
     };
     inst.commets;
-    inst.loopInterval;
-    inst.startTime;
+    inst.frameUpdateTime = 1000 / 60; // 60 fps
+    inst.lastUpdateTime; // last time canvas was updated
+    inst.levelStartTime; // level start time - the player needs to survive for some minutes until the level is finished
     inst.level = 0;
     inst.score = 0;
+    
     
     /**
      * The game must start with inst method.
@@ -54,6 +61,9 @@ var SpaceGuard = function() {
     inst.initialize = function(canvasId) {
         inst.canvas = document.getElementById(canvasId);
         inst.ctx = inst.canvas.getContext('2d');
+        // @task Adjust resolution of the canvas object so the client
+        // displays smooth animation. Depending the adjustment percentage
+        // all the elements of the game will need to scale down.
         inst.load();
         return inst;
     };
@@ -64,6 +74,8 @@ var SpaceGuard = function() {
      */
     inst.load = function() {        
         // background
+        inst.canvas.width = CANVAS_WIDTH * SCALE;
+        inst.canvas.height = CANVAS_HEIGHT * SCALE;
         inst.cx = inst.canvas.width / 2;
         inst.cy = inst.canvas.height / 2; 
         inst.ctx.rect(0, 0, inst.canvas.width, inst.canvas.height);
@@ -75,21 +87,21 @@ var SpaceGuard = function() {
 
         // planet
         inst.ctx.beginPath();
-        inst.ctx.arc(inst.cx, inst.cy, 80, 2 * Math.PI, false);
+        inst.ctx.arc(inst.cx, inst.cy, 80 * SCALE, 2 * Math.PI, false);
         gradient = inst.ctx.createLinearGradient(inst.cx, inst.cy, 30, 30);
         gradient.addColorStop(0, '#99547C');
         gradient.addColorStop(1, '#fff');
         inst.ctx.fillStyle = gradient;
         inst.ctx.fill();
-        inst.ctx.lineWidth = 5;
+        inst.ctx.lineWidth = 5 * SCALE;
         inst.ctx.strokeStyle = '#693A55';
         inst.ctx.stroke();
 
         // text
-        inst.ctx.font = '30pt helvetica';
+        inst.ctx.font = (30 * SCALE).toString() + 'pt helvetica';
         inst.ctx.textAlign = 'center';
         inst.ctx.fillStyle = '#fff';
-        inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 150);
+        inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 150 * SCALE);
 
         inst.canvas.addEventListener('click', inst.onClick, false);
         inst.canvas.addEventListener('contextmenu', inst.onContextMenu, false);
@@ -105,7 +117,8 @@ var SpaceGuard = function() {
         // init game vars
         inst.onGame = true;
         inst.onPause = false;
-        inst.startTime = new Date();
+        inst.levelStartTime = new Date();
+        inst.lastUpdateTime = new Date();
         inst.guard.x = inst.cx;
         inst.guard.y = inst.cy;
         inst.guard.shield = lvl[inst.level].guard.shield;
@@ -126,8 +139,8 @@ var SpaceGuard = function() {
         inst.canvas.addEventListener('mouseout', inst.onMouseOut);
         inst.canvas.style['cursor'] = 'none';
 
-        // start game loop
-        inst.loopInterval = setInterval(inst.loop, LOOP_DELAY);
+        // game loop
+        inst.loop();
 
         return inst;
     };
@@ -137,7 +150,7 @@ var SpaceGuard = function() {
         inst.cx = inst.canvas.width / 2;
         inst.cy = inst.canvas.height / 2; 
         inst.ctx.rect(0, 0, inst.canvas.width, inst.canvas.height);
-        var gradient = inst.ctx.createRadialGradient(inst.cx, inst.cy, 400, inst.cx, inst.cy, 100);
+        var gradient = inst.ctx.createRadialGradient(inst.cx, inst.cy, 400 * SCALE, inst.cx, inst.cy, 100);
         gradient.addColorStop(1, '#000');
         gradient.addColorStop(0, '#222');
         inst.ctx.fillStyle = gradient;
@@ -148,14 +161,14 @@ var SpaceGuard = function() {
         inst.ctx.rect(inst.starship.x, inst.starship.y, inst.starship.width, inst.starship.width);
         inst.ctx.fillStyle = '#C43355';
         inst.ctx.strokeStyle = '#7D283C';
-        inst.ctx.lineWidth = 5;
+        inst.ctx.lineWidth = 5 * SCALE;
         inst.ctx.fill();
         inst.ctx.stroke();
         inst.ctx.beginPath();
         inst.ctx.rect(inst.starship.x + (inst.starship.width / 2), inst.starship.x - (inst.starship.height / 2), inst.starship.width / 2, inst.starship.height / 2);
         inst.ctx.fillStyle = '#D94C6D';
         inst.ctx.strokeStyle = '#7D283C';
-        inst.ctx.lineWidth = 5;
+        inst.ctx.lineWidth = 5 * SCALE;
         inst.ctx.fill();
         inst.ctx.stroke();
     };
@@ -163,7 +176,7 @@ var SpaceGuard = function() {
     inst.drawObjects = function() {
         // guard
         inst.ctx.beginPath();
-        inst.ctx.rect(inst.guard.x - 15, inst.guard.y - 15, 30, 30);
+        inst.ctx.rect(inst.guard.x - 15 * SCALE, inst.guard.y - 15 * SCALE, 30 * SCALE, 30 * SCALE);
         inst.ctx.fillStyle = 'yellow';
         inst.ctx.fill();
 
@@ -197,41 +210,46 @@ var SpaceGuard = function() {
 
     inst.pause = function() {
         if (!inst.onPause) {
-            clearInterval(inst.loopInterval);
             inst.canvas.style['cursor'] = 'none';
-            inst.loopInterval = setInterval(inst.loop, LOOP_DELAY);
+            inst.loop();
+            return;
         }
+        requestAnimationFrame(inst.pause, inst.canvas);
     };
 
     inst.loop = function() {
         if (inst.onPause) {
-            clearInterval(inst.loopInterval);
             inst.canvas.style['cursor'] = 'default';
-            inst.loopInterval = setInterval(inst.pause, LOOP_DELAY);
+            inst.pause();
             return;
         }
 
         if (!inst.onGame)  {
-            clearInterval(inst.loopInterval);
             inst.clearEventListeners();
             inst.onPause = false;
             inst.load(); // reset the game
             return;
         }
 
-        inst.drawBackground();
-        inst.drawObjects();
+        if (inst.datediff(new Date(), inst.lastUpdateTime).ms > inst.frameUpdateTime) {
+            // @task The game must run smoothly even in low power clients
+            inst.drawBackground();
+            inst.drawObjects(); 
+            inst.lastUpdateTime = new Date();
+        }            
         
         if (inst.guard.shield <= 0 || inst.starship.shield <= 0) {
             inst.onGame = false;
             console.log('shield destroyed', inst.guard.shield, inst.starship.shield);
         }
         
-        if (inst.datediff(new Date(), inst.startTime).minutes > lvl[inst.level].time) {
+        if (inst.datediff(new Date(), inst.levelStartTime).minutes > lvl[inst.level].time) {
             inst.onGame = false;
             inst.level++;
             console.log('level completed - time is over - player survived');
         }
+
+        requestAnimationFrame(inst.loop, inst.canvas);
     };
 
     inst.clearEventListeners = function() {
@@ -243,8 +261,8 @@ var SpaceGuard = function() {
     };
 
     inst.onMouseMove = function(e) {
-        inst.guard.x = e.x - inst.canvas.offsetLeft;
-        inst.guard.y = e.y - inst.canvas.offsetTop;
+        inst.guard.x = (e.x - inst.canvas.offsetLeft) * SCALE;
+        inst.guard.y = (e.y - inst.canvas.offsetTop) * SCALE;
     };
 
     inst.onMouseOut = function(e) {
@@ -253,7 +271,6 @@ var SpaceGuard = function() {
 
     inst.onClick = function(e) {
         if (!inst.onGame && !inst.onPause) inst.game();
-        
     };
 
     inst.onKeyUp = function(e) {
@@ -287,11 +304,11 @@ var Commet = function(sg) {
     inst.sg = sg;
     inst.x;
     inst.y;
-    inst.width = 15;
-    inst.height = 15;
+    inst.width = 15 * SCALE;
+    inst.height = 15 * SCALE;
     inst.speed = lvl[inst.sg.level].commet.speed;
     inst.damage = Math.floor(Math.random() * lvl[inst.sg.level].commet.damage);
-    inst.dfs = 30; // initial distance from scene
+    inst.dfs = 30 * SCALE; // initial distance from scene
     inst.dir;
     inst.destroyed = false;
     
@@ -323,9 +340,9 @@ var Commet = function(sg) {
 
     inst.draw = function() {
         // move
-        inst.y += inst.dir * Math.floor(Math.random() * inst.speed) + 1;
-        inst.x += inst.dir * Math.floor(Math.random() * inst.speed) + 1;
-
+        inst.x += inst.dir * Math.ceil(Math.random() * inst.speed) + 1;
+        inst.y += inst.dir * Math.ceil(Math.random() * inst.speed) + 1;
+        
         // draw
         inst.sg.ctx.beginPath();
         inst.sg.ctx.rect(inst.x, inst.y, inst.width, inst.height);
@@ -381,7 +398,7 @@ var lvl = [
             shield: 100
         },
         commet: {
-            speed: 4,
+            speed: 4 * SCALE,
             damage: 2,
             creationStep: 850  // if higher less will be created
         }
