@@ -8,11 +8,7 @@
  * @link GitHub https://github.com/alextselegidis/SpaceGuard
  * @link Live http://alextselegidis.com/spaceguard
  * 
- * Version 1.0 
- * @task Power ups - shield and explosion
- * @task Add Score
- * @task Stats display
- * @task Display Menus
+ * Version 1.0
  * @taks Add sound
  * @task Add graphics
  * @task Adjust resolution for smooth animation
@@ -26,6 +22,9 @@ var KEY_ESCAPE = 27;
 var LOOP_DELAY = 10;
 var GUARD_SHIELD_BASE = 10;
 var STARSHIP_SHIELD_BASE = 10;
+var COMMET_SCORE = 5;
+var SHIELD_SCORE = 3;
+var LEVEL_SCORE = 100;
 
 /**
  * Main game class
@@ -123,15 +122,17 @@ var SpaceGuard = function() {
         // init game vars
         inst.onGame = true;
         inst.onPause = false;
+        inst.score = 0;
         inst.levelStartTime = new Date();
         inst.lastUpdateTime = new Date();
+        inst.randomObjects = [];
         inst.guard.x = inst.cx;
         inst.guard.y = inst.cy;
         inst.guard.shield = lvl[inst.level].guard.shield;
         inst.starship.x = inst.cx - (inst.starship.width / 2);
         inst.starship.y = inst.cy - (inst.starship.height / 2);
         inst.starship.shield = lvl[inst.level].starship.shield;
-        
+
         // create commets
         inst.commets = [];
         for (var i = 0; i < 10; i++) {
@@ -189,14 +190,15 @@ var SpaceGuard = function() {
         // commets
         inst.commets.forEach(function(commet) {
             commet.draw();
-            if (commet.collides(inst.guard)) {
+            if (inst.collides(commet, inst.guard)) {
                 commet.destroyed = true;
                 inst.guard.shield -= commet.damage / 4; // quarter damage for the shield
+                inst.score += COMMET_SCORE; // fixed value  
             }
             
-            if (commet.collides(inst.starship)) {
+            if (inst.collides(commet, inst.starship)) {
                 commet.destroyed = true;
-                inst.starship.shield -= commet.damage;    
+                inst.starship.shield -= commet.damage;  
             }
             
             if (commet.destroyed) { // remove it from the array
@@ -214,8 +216,8 @@ var SpaceGuard = function() {
         }
     };
     
-    inst.drawRandomObjects = function() {
-        var rand = Math.round(Math.random() * 1000) + 1;;
+    inst.drawRandomStuff = function() {
+        var rand = Math.round(Math.random() * 1000) + 1;
         
         // Create Bomb
         if (rand >= lvl[inst.level].bomb.creationStep) {
@@ -234,22 +236,31 @@ var SpaceGuard = function() {
         
         // Draw & Check Collision
         inst.randomObjects.forEach(function(obj) {
-            //if (inst.checkCollision(obj, inst.guard)) {
-            //    obj.trigger();
-            //}
-                
-            
-            if (obj.destroyed) {
-                var index = inst.commets.indexOf(commet);
-                if (index > -1) inst.commets.splice(index, 1);
-            }
-
             inst.ctx.fillStyle = obj.color;
             inst.ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+
+            if (inst.collides(obj, inst.guard)) {
+                obj.trigger();    
+            }
+            
+            if (obj.destroyed) {
+                var index = inst.randomObjects.indexOf(obj);
+                if (index > -1) inst.randomObjects.splice(index, 1);
+            }
         });
     };
 
     inst.pause = function() {
+        inst.ctx.fillStyle = 'black';
+        inst.ctx.fillRect(0, 0, inst.canvas.width * SCALE, inst.canvas.height * SCALE);
+        inst.ctx.fillStyle = 'white';
+        inst.ctx.font = '24pt Arial';
+        inst.ctx.textAlign = 'center';
+        inst.ctx.fillText('Paused!', inst.canvas.width * SCALE / 2, inst.canvas.height * SCALE / 2);
+        inst.ctx.font = '14pt Arial';
+        inst.ctx.fontStyle = '#EEE';
+        inst.ctx.fillText('Click the right mouse button to continue.', inst.canvas.width * SCALE / 2, inst.canvas.height * SCALE / 2 + 30);
+
         if (!inst.onPause) {
             inst.canvas.style['cursor'] = 'none';
             inst.loop();
@@ -273,10 +284,10 @@ var SpaceGuard = function() {
         }
 
         if (inst.datediff(new Date(), inst.lastUpdateTime).ms > inst.frameUpdateTime) {
-            // @task The game must run smoothly even in low power clients
             inst.drawBackground();
-            inst.drawRandomObjects();
+            inst.drawRandomStuff();
             inst.drawObjects(); 
+            inst.drawStats();
             inst.lastUpdateTime = new Date();
         }            
         
@@ -328,17 +339,64 @@ var SpaceGuard = function() {
     
     inst.datediff = function(date1, date2) {
         // @link http://stackoverflow.com/a/7709819/1718162
+        // @link http://stackoverflow.com/a/13894670/1718162
         var diff = {};
         diff.ms = (date1 - date2);
         diff.days = Math.round(diff.ms / 86400000);
-        diff.hours = Math.round((diff.ms % 86400000) / 3600000)
+        diff.hours = Math.round((diff.ms % 86400000) / 3600000);
         diff.minutes = Math.round(((diff.ms % 86400000) % 3600000) / 60000); 
+        diff.seconds = parseInt((date1.getTime() - date2.getTime()) / 1000); 
         return diff;
     };
+
+    /**
+     * Check collision between objects.
+     * @param {object} obj1{x, y, width, height}
+     * @param {object} obj2{x, y, width, height}
+     * @returns {bool}
+     */
+    inst.collides = function(obj1, obj2) {
+        var x1, y1, w1, h1; // obj1
+        var ox, oy, ow, oh; // obj2
+        
+        x1 = obj1.x;
+        y1 = obj1.y;
+        w1 = obj1.width;
+        h1 = obj1.height;
+        
+        x2 = obj2.x;
+        y2 = obj2.y;
+        w2 = obj2.width;
+        h2 = obj2.height;
+        
+        // check whether objects collide
+        return (((x1 < x2 && (x1 + w1) > x2) 
+                || (x1 > x2 && (x1 + w1) < (x2 + w2))
+                || (x1 > x2 && x1 < (x2 + w2))) && 
+            ((y1< y2 && (y1 + h1) > y2) 
+                || (y1 > y2 && (y1 + h1) < (y2 + h2))
+                || (y1 > y2 && y1 < (y2 + h2)))) 
+            ? true : false;
+    };
+
+    inst.drawStats = function() {
+        var time = inst.datediff(new Date(), inst.levelStartTime);
+        var minutes = (time.minutes < 10) ? '0' + time.minutes : time.minutes;
+        var seconds = (time.seconds < 10) ? '0' + time.seconds : time.seconds;
+
+        inst.ctx.textAlign = 'left';
+        inst.ctx.font = 12 * SCALE + 'pt Arial';
+        inst.ctx.fillStyle = '#5CFF8F';
+
+        inst.ctx.fillText('Score ' + inst.score, 20 * SCALE, 30 * SCALE); // score
+        inst.ctx.fillText('Guard ' + inst.guard.shield + '%', 20 * SCALE, 50 * SCALE); // guard
+        inst.ctx.fillText('Starship ' + inst.starship.shield + '%', 20 * SCALE, 70 * SCALE); // starship
+        inst.ctx.fillText('Time ' + minutes + ':' + seconds, 20 * SCALE, 90 * SCALE); // time
+    }
 };
 
 /**
- * Handles the commets animation.
+ * (OBJECT) Handles the commets animation.
  * @param {object} sg SpaceGuard game instance.
  */
 var Commet = function(sg) {
@@ -391,42 +449,10 @@ var Commet = function(sg) {
         inst.sg.ctx.fillStyle = 'red';
         inst.sg.ctx.fill();
     };
-
-    /**
-     * Check collision with object.
-     * @param {object} obj{x, y, width, height
-     * @returns {bool}
-     */
-    inst.collides = function(obj) {
-        var cx, cy, cw, ch; // commet
-        var ox, oy, ow, oh; // object
-        
-        cx = inst.x;
-        cy = inst.y;
-        cw = inst.width;
-        ch = inst.height;
-        
-        ox = obj.x;
-        oy = obj.y;
-        ow = obj.width;
-        oh = obj.height;
-        
-        // check whether objects collide
-        if (((cx < ox && (cx + cw) > ox) 
-                || (cx > ox && (cx + cw) < (ox + ow))
-                || (cx > ox && cx < (ox + ow))) && 
-            ((cy< oy && (cy + ch) > oy) 
-                || (cy > oy && (cy + ch) < (oy + oh))
-                || (cy > oy && cy < (oy + oh)))) {
-            return true;
-        } else {
-            return false;
-        }
-    };
 };
 
 /**
- * Guard shield power up. 
+ * (RANDOM OBJECT) Guard shield power up. 
  * @param {object} sg SpaceGuard game instance.
  */
 var GuardShield = function(sg) {
@@ -443,12 +469,13 @@ var GuardShield = function(sg) {
 
     inst.trigger = function() {
         inst.sg.guard.shield += inst.value;
+        inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
     }
 }
 
 /**
- * Starship shield power up. 
+ * (RANDOM OBJECT) Starship shield power up. 
  * @param {object} sg SpaceGuard game instance.
  */
 var StarshipShield = function(sg) {
@@ -464,12 +491,13 @@ var StarshipShield = function(sg) {
 
     inst.trigger = function() {
         inst.sg.starship.shield += inst.value;
+        inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
     }
 }
 
 /**
- * Bomb that explodes when the guard collides with it.
+ * (RANDOM OBJECT) Bomb that explodes when the guard collides with it.
  * @param {object} sg SpaceGuard game instance.
  */
 var Bomb = function(sg) {
@@ -506,13 +534,13 @@ var lvl = [
             creationStep: 850  // if higher less will be created
         },
         bomb: {
-            creationStep: 800
+            creationStep: 980
         },
         guardShield: {
-            creationStep: 800
+            creationStep: 980
         },
         starshipShield: {
-            creationStep: 800
+            creationStep: 980
         }
     }
 ];
