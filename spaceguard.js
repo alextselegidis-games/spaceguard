@@ -19,12 +19,17 @@
  **********************************************************************************/
 
 // Global Constants
-var SCALE = 0.5;
+var SCALE = 1;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var KEY_ESCAPE = 27;
 var LOOP_DELAY = 10;
+var GUARD_SHIELD_BASE = 10;
+var STARSHIP_SHIELD_BASE = 10;
 
+/**
+ * Main game class
+ */
 var SpaceGuard = function() {
     var inst = this;
     inst.canvas;
@@ -51,6 +56,7 @@ var SpaceGuard = function() {
     inst.levelStartTime; // level start time - the player needs to survive for some minutes until the level is finished
     inst.level = 0;
     inst.score = 0;
+    inst.randomObjects = [];
     
     
     /**
@@ -207,6 +213,41 @@ var SpaceGuard = function() {
             inst.commets.push(commet);
         }
     };
+    
+    inst.drawRandomObjects = function() {
+        var rand = Math.round(Math.random() * 1000) + 1;;
+        
+        // Create Bomb
+        if (rand >= lvl[inst.level].bomb.creationStep) {
+            inst.randomObjects.push(new Bomb(inst));
+        }
+        
+        // Create Guard Shield
+        if (rand >= lvl[inst.level].guardShield.creationStep) {
+            inst.randomObjects.push(new GuardShield(inst));
+        }
+        
+        // Create Starship Shield
+        if (rand >= lvl[inst.level].starshipShield.creationStep) {
+            inst.randomObjects.push(new StarshipShield(inst));   
+        }
+        
+        // Draw & Check Collision
+        inst.randomObjects.forEach(function(obj) {
+            //if (inst.checkCollision(obj, inst.guard)) {
+            //    obj.trigger();
+            //}
+                
+            
+            if (obj.destroyed) {
+                var index = inst.commets.indexOf(commet);
+                if (index > -1) inst.commets.splice(index, 1);
+            }
+
+            inst.ctx.fillStyle = obj.color;
+            inst.ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+        });
+    };
 
     inst.pause = function() {
         if (!inst.onPause) {
@@ -234,6 +275,7 @@ var SpaceGuard = function() {
         if (inst.datediff(new Date(), inst.lastUpdateTime).ms > inst.frameUpdateTime) {
             // @task The game must run smoothly even in low power clients
             inst.drawBackground();
+            inst.drawRandomObjects();
             inst.drawObjects(); 
             inst.lastUpdateTime = new Date();
         }            
@@ -383,8 +425,69 @@ var Commet = function(sg) {
     };
 };
 
-// Define global SpaceGuard object.
-var sg = new SpaceGuard();
+/**
+ * Guard shield power up. 
+ * @param {object} sg SpaceGuard game instance.
+ */
+var GuardShield = function(sg) {
+    var inst = this;
+    inst.sg = sg;
+    inst.color = '#36BDEB';
+    inst.destroyed = false;
+    inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
+    inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
+    inst.width = 12 * SCALE;
+    inst.height = 12 * SCALE;
+    inst.shield = 10; // base power up value
+    inst.value = Math.round(Math.random() * inst.shield) + inst.shield;
+
+    inst.trigger = function() {
+        inst.sg.guard.shield += inst.value;
+        inst.destroyed = true;
+    }
+}
+
+/**
+ * Starship shield power up. 
+ * @param {object} sg SpaceGuard game instance.
+ */
+var StarshipShield = function(sg) {
+    var inst = this;
+    inst.sg = sg;
+    inst.color = '#36EB57';
+    inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
+    inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
+    inst.width = 12 * SCALE;
+    inst.height = 12 * SCALE;
+    inst.shield = 10; // base power up value
+    inst.value = Math.round(Math.random() * inst.shield) + inst.shield;
+
+    inst.trigger = function() {
+        inst.sg.starship.shield += inst.value;
+        inst.destroyed = true;
+    }
+}
+
+/**
+ * Bomb that explodes when the guard collides with it.
+ * @param {object} sg SpaceGuard game instance.
+ */
+var Bomb = function(sg) {
+    var inst = this;
+    inst.sg = sg;
+    inst.color = '#6C17AD';
+    inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
+    inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
+    inst.width = 12 * SCALE;
+    inst.height = 12 * SCALE;
+    inst.damage = 10; // base power up value
+    inst.value = Math.round(Math.random() * inst.damage) + inst.damage;
+
+    inst.trigger = function() {
+        inst.sg.guard.shield -= inst.value;
+        inst.destroyed = true;
+    }
+}
 
 // Level Definition
 var lvl = [
@@ -401,6 +504,18 @@ var lvl = [
             speed: 4 * SCALE,
             damage: 2,
             creationStep: 850  // if higher less will be created
+        },
+        bomb: {
+            creationStep: 800
+        },
+        guardShield: {
+            creationStep: 800
+        },
+        starshipShield: {
+            creationStep: 800
         }
     }
 ];
+
+// Define global SpaceGuard object.
+var sg = new SpaceGuard();
