@@ -9,13 +9,16 @@
  * @link Live http://alextselegidis.com/spaceguard
  * 
  * Version 1.0
- * @taks Add sound
+ * @task Fix commet movement
+ * @task Complete guard and bombs activities
+ * @task Add sound
  * @task Add graphics
  * @task Adjust resolution for smooth animation
+ * @task optimize code for better performance
  **********************************************************************************/
 
 // Global Constants
-var SCALE = 1;
+var SCALE = 0.4;
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var KEY_ESCAPE = 27;
