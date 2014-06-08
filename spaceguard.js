@@ -1,9 +1,10 @@
-/***********************************************************************************
+/**********************************************************************************
  * SpaceGuard - Simple HTML5 Browser Game
  * 
  * Initialize the global sg object with the canvas id and the game will start 
  * running automatically. 
- * 
+ *
+ * @example <body onload="sg.initialize('canvas-element-id');">
  * @license GPLv3
  * @link GitHub https://github.com/alextselegidis/SpaceGuard
  * @link Live http://alextselegidis.com/spaceguard
@@ -17,8 +18,8 @@
 
 // Global Constants
 var SCALE = 1;
-var CANVAS_WIDTH = 800;
-var CANVAS_HEIGHT = 600;
+var CANVAS_WIDTH = 800; // px
+var CANVAS_HEIGHT = 600; // px
 var KEY_ESCAPE = 27;
 var LOOP_DELAY = 10;
 var GUARD_SHIELD_BASE = 10;
@@ -77,9 +78,6 @@ var SpaceGuard = function() {
     inst.initialize = function(canvasId) {
         inst.canvas = document.getElementById(canvasId);
         inst.ctx = inst.canvas.getContext('2d');
-        // @task Adjust resolution of the canvas object so the client
-        // displays smooth animation. Depending the adjustment percentage
-        // all the elements of the game will need to scale down.
         inst.load();
         return inst;
     };
@@ -100,6 +98,7 @@ var SpaceGuard = function() {
         gradient.addColorStop(0, '#222');
         inst.ctx.fillStyle = gradient;
         inst.ctx.fill(); 
+        inst.canvas.style['cursor'] = 'default';
 
         // planet
         inst.ctx.beginPath();
@@ -119,6 +118,7 @@ var SpaceGuard = function() {
         inst.ctx.fillStyle = '#fff';
         inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 150 * SCALE);
 
+        // events
         inst.canvas.addEventListener('click', inst.onClick, false);
         inst.canvas.addEventListener('contextmenu', inst.onContextMenu, false);
 
@@ -156,8 +156,8 @@ var SpaceGuard = function() {
         inst.canvas.addEventListener('mouseout', inst.onMouseOut);
         inst.canvas.style['cursor'] = 'none';
 
-        // game loop
-        inst.loop();
+        // splash screen
+        inst.displaySplashScreen('Level ' + (inst.level + 1), 1000, inst.loop);
 
         return inst;
     };
@@ -182,7 +182,7 @@ var SpaceGuard = function() {
         inst.ctx.fill();
         inst.ctx.stroke();
         inst.ctx.beginPath();
-        inst.ctx.rect(inst.starship.x + (inst.starship.width / 2), inst.starship.x - (inst.starship.height / 2), inst.starship.width / 2, inst.starship.height / 2);
+        inst.ctx.rect(inst.starship.x + (inst.starship.width / 4), inst.starship.y + (inst.starship.height / 4), inst.starship.width / 2, inst.starship.height / 2);
         inst.ctx.fillStyle = '#D94C6D';
         inst.ctx.strokeStyle = '#7D283C';
         inst.ctx.lineWidth = 5 * SCALE;
@@ -317,12 +317,8 @@ var SpaceGuard = function() {
             return;
         }
 
-        if (!inst.onGame)  {
-            inst.clearEventListeners();
-            inst.onPause = false;
-            inst.load(); 
+        if (!inst.onGame)
             return;
-        }
 
         if (inst.datediff(new Date(), inst.lastUpdateTime).ms > inst.frameUpdateTime) {
             inst.drawBackground();
@@ -333,17 +329,25 @@ var SpaceGuard = function() {
         }            
         
         if (inst.guard.shield <= 0 || inst.starship.shield <= 0) {
+            // reset game
             inst.onGame = false;
-            // reset stuff
+            inst.onPause = false;
             inst.score = 0; 
             inst.level = 0; 
+            inst.clearEventListeners();
+            inst.displaySplashScreen('Shield Destroyed!', 2000, inst.load);
             console.log('shield destroyed', inst.guard.shield, inst.starship.shield);
+            return;
         }
         
         if (inst.datediff(new Date(), inst.levelStartTime).ms > lvl[inst.level].time * 60 * 1000) {
             inst.onGame = false;
+            inst.onPause = false;
             inst.level++;
+            //inst.clearEventListeners();
+            inst.displaySplashScreen('Level Completed!', 2000, inst.game);
             console.log('level completed - time is over - player survived');
+            return;
         }
 
         requestAnimationFrame(inst.loop, inst.canvas);
@@ -374,9 +378,13 @@ var SpaceGuard = function() {
     inst.onKeyUp = function(e) {
         if (e.keyCode == KEY_ESCAPE && !inst.onPause) {
             inst.onGame = false;
+            inst.onPause = false;
             // reset stuff
             inst.score = 0; 
             inst.level = 0; 
+            inst.clearEventListeners();
+            inst.displaySplashScreen('Game Over', 1000, inst.load);
+
         }
     };
     
@@ -471,6 +479,26 @@ var SpaceGuard = function() {
                 inst.onDefuse = false;
             }
         }, 10);
+    }
+
+    inst.displaySplashScreen = function(text, duration, callback) {
+        var drawStartTime = new Date();
+        var drawSplashScreen = function () {
+            inst.ctx.fillStyle = 'black';
+            inst.ctx.fillRect(0, 0, inst.canvas.width * SCALE, inst.canvas.height * SCALE);    
+            inst.ctx.fillStyle = 'white';
+            inst.ctx.font = '24pt Arial';
+            inst.ctx.textAlign = 'center';
+            inst.ctx.fillText(text, inst.canvas.width * SCALE / 2, inst.canvas.height * SCALE / 2);
+
+            if (inst.datediff(new Date(), drawStartTime).ms > duration)  {
+                if (callback) callback();
+                return;
+            }
+
+            requestAnimationFrame(drawSplashScreen, inst.canvas);
+        }
+        drawSplashScreen();
     }
 };
 
@@ -738,6 +766,25 @@ var lvl = [
         }
     }
 ];
+
+// Share on Social Networks
+var Share = function() {
+    var inst = this;
+
+    inst.facebook = function(score) {
+
+    }
+
+    inst.twitter = function(score) {
+
+    }
+
+    inst.googlePlus = function(score) {
+
+    }
+    
+}
+
 
 // Define global SpaceGuard object.
 var sg = new SpaceGuard();
