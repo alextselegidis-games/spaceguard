@@ -8,12 +8,6 @@
  * @license GPLv3
  * @link GitHub https://github.com/alextselegidis/SpaceGuard
  * @link Live http://alextselegidis.com/spaceguard
- * 
- * Version 1.0
- * @task Add sound
- * @task Add graphics
- * @task Adjust resolution for smooth animation
- * @task optimize code for better performance
  **********************************************************************************/
 
 // Global Constants
@@ -46,16 +40,18 @@ var SpaceGuard = function() {
         x: undefined,
         y: undefined,
         width: 30 * SCALE,
-        height: 30 * SCALE,
-        shield: 100
+        height: 39 * SCALE,
+        shield: 100,
+        defuseRadius: 50
     };
     inst.starship = {
         x: undefined,
         y: undefined,
-        width: 100 * SCALE,
-        height: 100 * SCALE,
+        width: 161 * SCALE,
+        height: 140 * SCALE,
         shield: 100
     };
+    inst.sprites;
     inst.commets;
     inst.frameUpdateTime = 1000 / 60; // 60 fps
     inst.lastUpdateTime; // last time canvas was updated
@@ -63,11 +59,10 @@ var SpaceGuard = function() {
     inst.pauseTime; // Stores the paused time period.
     inst.randomRollTime = 3000;
     inst.lastRollTime = new Date();
-    inst.level = 0;
+    inst.level = 0; // level var starts from 0, not from 1
     inst.score = 0;
     inst.randomObjects = [];
     inst.onDefuse = false;
-    inst.defuseRadius = 50; // px
     inst.currentDefuseRadius = 0; // used for graphic display
     
     /**
@@ -78,6 +73,26 @@ var SpaceGuard = function() {
     inst.initialize = function(canvasId) {
         inst.canvas = document.getElementById(canvasId);
         inst.ctx = inst.canvas.getContext('2d');
+
+        // load image sprites
+        var imgs = document.createElement('div');
+        imgs.innerHTML = 
+            '<img id="guard" src="img/guard.png" style="display:none;">' + 
+            '<img id="commet" src="img/commet.png" style="display:none;">' + 
+            '<img id="bomb" src="img/bomb.png" style="display:none;">' + 
+            '<img id="gshield" src="img/gshield.png" style="display:none;">' + 
+            '<img id="sshield" src="img/sshield.png" style="display:none;">' + 
+            '<img id="starship" src="img/starship.png" style="display:none;">';
+        document.body.appendChild(imgs);
+        inst.sprites = {
+            guard: document.getElementById('guard'),
+            commet: document.getElementById('commet'),
+            bomb: document.getElementById('bomb'),
+            gshield: document.getElementById('gshield'),
+            sshield: document.getElementById('sshield'),
+            starship: document.getElementById('starship')
+        };
+
         inst.load();
         return inst;
     };
@@ -87,18 +102,31 @@ var SpaceGuard = function() {
      * @returns {object} Returns game instance.
      */
     inst.load = function() {        
-        // background
+        // init canvas
         inst.canvas.width = CANVAS_WIDTH * SCALE;
         inst.canvas.height = CANVAS_HEIGHT * SCALE;
         inst.cx = inst.canvas.width / 2;
         inst.cy = inst.canvas.height / 2; 
         inst.ctx.rect(0, 0, inst.canvas.width, inst.canvas.height);
+
+        // Check if user agent is a mobile device.
+        if (Environment.isMobile()) {
+            inst.ctx.fillStyle = '#000';
+            inst.ctx.fillRect(0, 0, inst.canvas.width * SCALE, inst.canvas.height * SCALE);
+            inst.ctx.fillStyle = '#fff';
+            inst.ctx.font = '14pt Arial';
+            inst.ctx.textAlign = 'center';
+            inst.wrapText('Unfortunately SpaceGuard cannot be played on mobile devices. Please try again from a desktop computer.', 
+                (inst.canvas.width / 2) * SCALE, (inst.canvas.height / 2) * SCALE, 350 * SCALE, 25 * SCALE);
+            return;
+        }
+
+        // background
         var gradient = inst.ctx.createRadialGradient(inst.cx, inst.cy, 400, inst.cx, inst.cy, 100);
         gradient.addColorStop(1, '#000');
         gradient.addColorStop(0, '#222');
         inst.ctx.fillStyle = gradient;
         inst.ctx.fill(); 
-        inst.canvas.style['cursor'] = 'default';
 
         // planet
         inst.ctx.beginPath();
@@ -118,6 +146,8 @@ var SpaceGuard = function() {
         inst.ctx.fillStyle = '#fff';
         inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 150 * SCALE);
 
+        inst.canvas.style['cursor'] = 'default';
+        
         // events
         inst.canvas.addEventListener('click', inst.onClick, false);
         inst.canvas.addEventListener('contextmenu', inst.onContextMenu, false);
@@ -139,9 +169,12 @@ var SpaceGuard = function() {
         inst.guard.x = inst.cx;
         inst.guard.y = inst.cy;
         inst.guard.shield = lvl[inst.level].guard.shield;
+        inst.guard.defuseRadius = lvl[inst.level].guard.defuseRadius;
+        inst.guard.img = document.getElementById('guard');
         inst.starship.x = inst.cx - (inst.starship.width / 2);
         inst.starship.y = inst.cy - (inst.starship.height / 2);
         inst.starship.shield = lvl[inst.level].starship.shield;
+        inst.starship.img = document.getElementById('starship');
 
         // create commets
         inst.commets = [];
@@ -157,7 +190,7 @@ var SpaceGuard = function() {
         inst.canvas.style['cursor'] = 'none';
 
         // splash screen
-        inst.displaySplashScreen('Level ' + (inst.level + 1), 1000, inst.loop);
+        inst.splash('Level ' + (inst.level + 1), 1000, inst.loop);
 
         return inst;
     };
@@ -174,28 +207,12 @@ var SpaceGuard = function() {
         inst.ctx.fill();
 
         // starship
-        inst.ctx.beginPath();
-        inst.ctx.rect(inst.starship.x, inst.starship.y, inst.starship.width, inst.starship.width);
-        inst.ctx.fillStyle = '#C43355';
-        inst.ctx.strokeStyle = '#7D283C';
-        inst.ctx.lineWidth = 5 * SCALE;
-        inst.ctx.fill();
-        inst.ctx.stroke();
-        inst.ctx.beginPath();
-        inst.ctx.rect(inst.starship.x + (inst.starship.width / 4), inst.starship.y + (inst.starship.height / 4), inst.starship.width / 2, inst.starship.height / 2);
-        inst.ctx.fillStyle = '#D94C6D';
-        inst.ctx.strokeStyle = '#7D283C';
-        inst.ctx.lineWidth = 5 * SCALE;
-        inst.ctx.fill();
-        inst.ctx.stroke();
+        inst.ctx.drawImage(inst.sprites.starship, inst.starship.x * SCALE, inst.starship.y * SCALE);
     };
 
     inst.drawObjects = function() {
         // guard
-        inst.ctx.beginPath();
-        inst.ctx.rect(inst.guard.x * SCALE, inst.guard.y * SCALE, 30 * SCALE, 30 * SCALE);
-        inst.ctx.fillStyle = 'yellow';
-        inst.ctx.fill();
+        inst.ctx.drawImage(inst.sprites.guard, inst.guard.x * SCALE, inst.guard.y * SCALE);
 
         if (inst.onDefuse) {
             inst.ctx.beginPath();
@@ -239,7 +256,7 @@ var SpaceGuard = function() {
 
         // create objects
         var rand = Math.ceil(Math.random() * 1000) - creationBarrier;
-        if (rand >= lvl[inst.level].commet.creationStep) {
+        if (rand >= inst.convertRate(lvl[inst.level].commet.creationRate)) {
             var commet = new Commet(inst);
             commet.position();
             inst.commets.push(commet);
@@ -253,33 +270,41 @@ var SpaceGuard = function() {
 
         // Create Bomb
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= lvl[inst.level].bomb.creationStep && roll) {
+        if (rand >= inst.convertRate(lvl[inst.level].bomb.creationRate) && roll) {
             inst.randomObjects.push(new Bomb(inst));
             creation = true;
         }
         
         // Create Guard Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= lvl[inst.level].guardShield.creationStep && roll && !creation) {
+        if (rand >= inst.convertRate(lvl[inst.level].guardShield.creationRate) && roll && !creation) {
             inst.randomObjects.push(new GuardShield(inst));
             creation = true;
         }
         
         // Create Starship Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= lvl[inst.level].starshipShield.creationStep && roll && !creation) {
+        if (rand >= inst.convertRate(lvl[inst.level].starshipShield.creationRate) && roll && !creation) {
             inst.randomObjects.push(new StarshipShield(inst));   
             creation = true;
         }
         
         // Draw & Check Collision
         inst.randomObjects.forEach(function(obj) {
-            inst.ctx.fillStyle = obj.color;
-            inst.ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-
-            if (inst.collides(obj, inst.guard)) {
-                obj.trigger();    
+            switch(obj.type) {
+                case OBJ_TYPE_BOMB: 
+                    inst.ctx.drawImage(inst.sprites.bomb, obj.x, obj.y);
+                    break;
+                case OBJ_TYPE_GSHIELD: 
+                    inst.ctx.drawImage(inst.sprites.gshield, obj.x, obj.y);
+                    break;
+                case OBJ_TYPE_SSHIELD: 
+                    inst.ctx.drawImage(inst.sprites.sshield, obj.x, obj.y);
+                    break;
             }
+
+            if (inst.collides(obj, inst.guard)) 
+                obj.trigger();    
             
             if (obj.destroyed) {
                 var index = inst.randomObjects.indexOf(obj);
@@ -291,6 +316,7 @@ var SpaceGuard = function() {
     inst.pause = function() {
         inst.ctx.fillStyle = 'black';
         inst.ctx.fillRect(0, 0, inst.canvas.width * SCALE, inst.canvas.height * SCALE);
+        inst.drawCredits();
         inst.ctx.fillStyle = 'white';
         inst.ctx.font = '24pt Arial';
         inst.ctx.textAlign = 'center';
@@ -298,6 +324,7 @@ var SpaceGuard = function() {
         inst.ctx.font = '14pt Arial';
         inst.ctx.fontStyle = '#EEE';
         inst.ctx.fillText('Click the right mouse button to continue.', inst.canvas.width * SCALE / 2, inst.canvas.height * SCALE / 2 + 30);
+        inst.drawStats(true);
 
         if (!inst.onPause) {
             inst.canvas.style['cursor'] = 'none';
@@ -310,6 +337,8 @@ var SpaceGuard = function() {
     };
 
     inst.loop = function() {
+        var message, callback, duration;
+
         if (inst.onPause) {
             inst.canvas.style['cursor'] = 'default';
             inst.pauseTime = new Date();
@@ -322,6 +351,7 @@ var SpaceGuard = function() {
 
         if (inst.datediff(new Date(), inst.lastUpdateTime).ms > inst.frameUpdateTime) {
             inst.drawBackground();
+            inst.drawCredits();
             inst.drawRandomObjects();
             inst.drawObjects(); 
             inst.drawStats();
@@ -329,24 +359,35 @@ var SpaceGuard = function() {
         }            
         
         if (inst.guard.shield <= 0 || inst.starship.shield <= 0) {
-            // reset game
+            // reset game - game over
             inst.onGame = false;
             inst.onPause = false;
-            inst.score = 0; 
-            inst.level = 0; 
+            //inst.level = 0; 
             inst.clearEventListeners();
-            inst.displaySplashScreen('Shield Destroyed!', 2000, inst.load);
-            console.log('shield destroyed', inst.guard.shield, inst.starship.shield);
+            message = ((inst.guard.shield <= 0) ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' > Score ' + inst.score + ' (-50%)';
+            inst.splash(message, 2000, inst.load);
+            inst.score = (inst.score > 0) ? Math.round(inst.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
             return;
         }
         
         if (inst.datediff(new Date(), inst.levelStartTime).ms > lvl[inst.level].time * 60 * 1000) {
             inst.onGame = false;
             inst.onPause = false;
-            inst.level++;
-            //inst.clearEventListeners();
-            inst.displaySplashScreen('Level Completed!', 2000, inst.game);
-            console.log('level completed - time is over - player survived');
+            
+
+            if (inst.level < lvl.length) {
+                message = 'Level Completed!';
+                callback = inst.game;
+                duration = 2000;
+                inst.level++;
+            } else {
+                message = 'Congrats! You\'ve Completed All Game Levels - Score ' + inst.score;
+                callback = inst.load;
+                duration = 5000;
+                inst.level = 0;
+            }
+            
+            inst.splash(message, duration, callback);
             return;
         }
 
@@ -383,7 +424,7 @@ var SpaceGuard = function() {
             inst.score = 0; 
             inst.level = 0; 
             inst.clearEventListeners();
-            inst.displaySplashScreen('Game Over', 1000, inst.load);
+            inst.splash('Game Over', 1000, inst.load);
 
         }
     };
@@ -437,8 +478,9 @@ var SpaceGuard = function() {
             ? true : false;
     };
 
-    inst.drawStats = function() {
-        var time = inst.datediff(new Date(), inst.levelStartTime);
+    inst.drawStats = function(onPause) {
+        var currDate = (!onPause) ? new Date() : inst.lastUpdateTime;
+        var time = inst.datediff(currDate, inst.levelStartTime);
         var diff = new Date((lvl[inst.level].time * 60 * 1000) - time.ms);
         var minutes = (diff.getMinutes() < 10) ? '0' + diff.getMinutes() : diff.getMinutes();
         var seconds = (diff.getSeconds() < 10) ? '0' + diff.getSeconds() : diff.getSeconds();
@@ -452,9 +494,43 @@ var SpaceGuard = function() {
         inst.ctx.fillText('Score ' + inst.score, 20 * SCALE, 70 * SCALE); // score
 
         inst.ctx.textAlign = 'right';
-        inst.ctx.fillText('Guard ' + inst.guard.shield + '%', inst.canvas.width - 20 * SCALE, 30 * SCALE); // guard
-        inst.ctx.fillText('Starship ' + inst.starship.shield + '%', inst.canvas.width - 20 * SCALE, 50 * SCALE); // starship
-    }
+        inst.ctx.lineWidth = '1';
+        var gColor = inst.getBarColor(inst.guard.shield, onPause);
+        var sColor = inst.getBarColor(inst.starship.shield, onPause);
+
+        inst.ctx.fillStyle = gColor;
+        inst.ctx.fillText('Guard ' + inst.guard.shield + '%', (inst.canvas.width - 20) * SCALE, 30 * SCALE); // guard
+        inst.ctx.fillStyle = sColor;
+        inst.ctx.fillText('Starship ' + inst.starship.shield + '%', (inst.canvas.width - 20) * SCALE, 80 * SCALE); // starship
+        
+        gColor = inst.getBarColor(inst.guard.shield, onPause, true);
+        sColor = inst.getBarColor(inst.starship.shield, onPause, true);
+
+        inst.ctx.strokeStyle = gColor;
+        inst.ctx.strokeRect((inst.canvas.width - 152) * SCALE, 40, 130, 15);
+        inst.ctx.fillStyle = gColor;
+        inst.ctx.fillRect((inst.canvas.width - 152) * SCALE, 40, inst.guard.shield / 100 * 130, 15);
+
+        inst.ctx.strokeStyle = sColor;
+        inst.ctx.strokeRect((inst.canvas.width - 152) * SCALE, 90, 130, 15);
+        inst.ctx.fillStyle = sColor;
+        inst.ctx.fillRect((inst.canvas.width - 152) * SCALE, 90, inst.starship.shield / 100 * 130, 15);
+    };
+
+    inst.getBarColor = function(value, onPause, opaque) {
+        var color;
+
+        if (value > 70)
+            color = (!onPause && opaque) ? 'rgba(92, 255, 201, 0.9)' : '#5CFFC9'; // cyan
+        else if (value > 40) 
+            color = (!onPause && opaque) ? 'rgba(92, 255, 143, 0.9)' : '#5CFF8F'; // green
+        else if (value > 15)
+            color = (!onPause && opaque) ? 'rgba(255, 149, 92, 0.9)' : '#FF955C'; // orange
+        else 
+            color = (!onPause && opaque) ? 'rgba(255, 92, 92, 0.9)' : '#FF5C5C'; // red
+            
+        return color;
+    };
 
     /**
      * The guard is able to defuse nearby bomb, but this will also 
@@ -473,15 +549,21 @@ var SpaceGuard = function() {
                     if (obj.type == OBJ_TYPE_BOMB) inst.score += BOMB_SCORE;
                 }
             });
-            if (inst.currentDefuseRadius == inst.defuseRadius) {
+            if (inst.currentDefuseRadius == inst.guard.defuseRadius) {
                 clearInterval(defuseInterval);
                 inst.currentDefuseRadius = 0;
                 inst.onDefuse = false;
             }
         }, 10);
-    }
+    };
 
-    inst.displaySplashScreen = function(text, duration, callback) {
+    /**
+     * Display splash screen with a custom message.
+     * @param  {string}   text     The message to be displayed on the splash screen.
+     * @param  {int}   duration The ammount of time that the splash screen will remain on canvas.
+     * @param  {function} callback This method will be called after the splash is finished.
+     */
+    inst.splash = function(text, duration, callback) {
         var drawStartTime = new Date();
         var drawSplashScreen = function () {
             inst.ctx.fillStyle = 'black';
@@ -491,7 +573,7 @@ var SpaceGuard = function() {
             inst.ctx.textAlign = 'center';
             inst.ctx.fillText(text, inst.canvas.width * SCALE / 2, inst.canvas.height * SCALE / 2);
 
-            if (inst.datediff(new Date(), drawStartTime).ms > duration)  {
+            if (inst.datediff(new Date(), drawStartTime).ms > duration)  { // end of splash screen
                 if (callback) callback();
                 return;
             }
@@ -499,7 +581,44 @@ var SpaceGuard = function() {
             requestAnimationFrame(drawSplashScreen, inst.canvas);
         }
         drawSplashScreen();
-    }
+    };
+
+    /**
+     * Converts the creation rate from percentage into a value that will be 
+     * compared with the random value.  
+     * @param  {int} rate Creation rate in percentage.
+     * @return {int} Returns the number that is going to be compared with the random value.
+     */
+    inst.convertRate = function(rate) {
+        return (1000 - rate * 10);
+    };
+
+    inst.drawCredits = function() {
+        inst.ctx.fillStyle = '#515151';
+        inst.ctx.font = '8pt Arial';
+        inst.ctx.textAlign = 'right';
+        inst.ctx.fillText('(C) Copyright ' + (new Date().getFullYear())  + ' - AlexTselegidis.Com', (inst.canvas.width - 10) * SCALE, (inst.canvas.height - 10) * SCALE )
+    };
+
+    // @link http://www.html5canvastutorials.com/tutorials/html5-canvas-wrap-text-tutorial/
+    inst.wrapText = function(text, x, y, maxWidth, lineHeight) {
+        var words = text.split(' ');
+        var line = '';
+
+        for(var n = 0; n < words.length; n++) {
+            var testLine = line + words[n] + ' ';
+            var metrics = inst.ctx.measureText(testLine);
+            var testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                inst.ctx.fillText(line, x, y);
+                line = words[n] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        inst.ctx.fillText(line, x, y);
+    };
 };
 
 /**
@@ -552,16 +671,11 @@ var Commet = function(sg) {
 
     inst.draw = function() {
         // move
-        //inst.x += inst.dir * Math.ceil(Math.random() * inst.speed) + inst.dir;
-        //inst.y = inst.a * inst.x + inst.b;
         inst.x += inst.a * Math.ceil(Math.random() * inst.speedX) + Math.round(inst.speedX / 2);
         inst.y += inst.a * Math.ceil(Math.random() * inst.speedY) + Math.round(inst.speedY / 2);
         
         // draw
-        inst.sg.ctx.beginPath();
-        inst.sg.ctx.rect(inst.x, inst.y, inst.width, inst.height);
-        inst.sg.ctx.fillStyle = 'red';
-        inst.sg.ctx.fill();
+        inst.sg.ctx.drawImage(inst.sg.sprites.commet, inst.x, inst.y);
     };
 };
 
@@ -588,7 +702,7 @@ var GuardShield = function(sg) {
             inst.sg.guard.shield = lvl[inst.sg.level].guard.shield;
         inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
-    }
+    };
 }
 
 /**
@@ -613,7 +727,7 @@ var StarshipShield = function(sg) {
             inst.sg.starship.shield = lvl[inst.sg.level].starship.shield;
         inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
-    }
+    };
 }
 
 /**
@@ -635,34 +749,68 @@ var Bomb = function(sg) {
     inst.trigger = function() {
         inst.sg.guard.shield -= inst.value;
         inst.destroyed = true;
-    }
+    };
 }
 
-// Level Definition
+// @link http://stackoverflow.com/a/16755700/1718162
+var Environment = {
+    //mobile or desktop compatible event name, to be used with '.on' function
+    TOUCH_DOWN_EVENT_NAME: 'mousedown touchstart',
+    TOUCH_UP_EVENT_NAME: 'mouseup touchend',
+    TOUCH_MOVE_EVENT_NAME: 'mousemove touchmove',
+    TOUCH_DOUBLE_TAB_EVENT_NAME: 'dblclick dbltap',
+
+    isAndroid: function() {
+        return navigator.userAgent.match(/Android/i);
+    },
+    isBlackBerry: function() {
+        return navigator.userAgent.match(/BlackBerry/i);
+    },
+    isIOS: function() {
+        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+    },
+    isOpera: function() {
+        return navigator.userAgent.match(/Opera Mini/i);
+    },
+    isWindows: function() {
+        return navigator.userAgent.match(/IEMobile/i);
+    },
+    isMobile: function() {
+        return (Environment.isAndroid() || Environment.isBlackBerry() || Environment.isIOS() || Environment.isOpera() || Environment.isWindows());
+    }
+};
+
+/**
+ * Level Definition
+ *
+ * Adjusts the way SpaceGuard is going to handle each level. The game 
+ * should become more and more hard to play as the user progress advances.
+ */
 var lvl = [
     // lvl 1
     {
-        time: 1,
-        background: 'img-path',
+        time: 1, // minutes
+        background: 'img-path', // image element id
         guard: {
-            shield: 100
+            shield: 100, // % percent
+            defuseRadius: 50
         },
         starship: {
-            shield: 100
+            shield: 100 // % percent
         },
         commet: {
-            speed: 7 * SCALE,
-            damage: 10,
-            creationStep: 850  // if higher less will be created
+            speed: 7 * SCALE, // points
+            damage: 10, // points
+            creationRate: 15  // % - if higher less will be created
         },
         bomb: {
-            creationStep: 650
+            creationRate: 35 // % percent
         },
         guardShield: {
-            creationStep: 800
+            creationRate: 20 // % percent
         },
         starshipShield: {
-            creationStep: 900
+            creationRate: 10 // % percent
         }
     },
     // lvl 2
@@ -670,24 +818,25 @@ var lvl = [
         time: 2,
         background: 'img-path',
         guard: {
-            shield: 100
+            shield: 100, 
+            defuseRadius: 55
         },
         starship: {
             shield: 100
         },
         commet: {
             speed: 8 * SCALE,
-            damage: 15,
-            creationStep: 800  // if higher less will be created
+            damage: 13,
+            creationRate: 20  // if higher less will be created
         },
         bomb: {
-            creationStep: 600
+            creationRate: 40
         },
         guardShield: {
-            creationStep: 850
+            creationRate: 20
         },
         starshipShield: {
-            creationStep: 900
+            creationRate: 12
         }
     },
     // lvl 3
@@ -695,24 +844,25 @@ var lvl = [
         time: 2,
         background: 'img-path',
         guard: {
-            shield: 80
+            shield: 100, 
+            defuseRadius: 60
         },
         starship: {
-            shield: 90
+            shield: 100
         },
         commet: {
-            speed: 9 * SCALE,
-            damage: 15,
-            creationStep: 700  // if higher less will be created
+            speed: 8 * SCALE,
+            damage: 13,
+            creationRate: 25  // if higher less will be created
         },
         bomb: {
-            creationStep: 600
+            creationRate: 40
         },
         guardShield: {
-            creationStep: 850
+            creationRate: 22
         },
         starshipShield: {
-            creationStep: 900
+            creationRate: 15
         }
     },
     // lvl 4
@@ -720,24 +870,25 @@ var lvl = [
         time: 3,
         background: 'img-path',
         guard: {
-            shield: 75
+            shield: 100, 
+            defuseRadius: 65
         },
         starship: {
-            shield: 85
+            shield: 100
         },
         commet: {
-            speed: 7 * SCALE,
+            speed: 8 * SCALE,
             damage: 20,
-            creationStep: 800  // if higher less will be created
+            creationRate: 35  // if higher less will be created
         },
         bomb: {
-            creationStep: 600
+            creationRate: 45
         },
         guardShield: {
-            creationStep: 800
+            creationRate: 30
         },
         starshipShield: {
-            creationStep: 850
+            creationRate: 25
         }
     },
     // lvl 5
@@ -745,45 +896,158 @@ var lvl = [
         time: 3,
         background: 'img-path',
         guard: {
-            shield: 75
+            shield: 100, 
+            defuseRadius: 70
         },
         starship: {
             shield: 100
         },
         commet: {
-            speed: 7 * SCALE,
+            speed: 9 * SCALE,
             damage: 20,
-            creationStep: 720  // if higher less will be created
+            creationRate: 40  // if higher less will be created
         },
         bomb: {
-            creationStep: 600
+            creationRate: 50
         },
         guardShield: {
-            creationStep: 850
+            creationRate: 35
         },
         starshipShield: {
-            creationStep: 900
+            creationRate: 25
+        }
+    },
+    // lvl 6
+    {
+        time: 3,
+        background: 'img-path',
+        guard: {
+            shield: 100, 
+            defuseRadius: 70
+        },
+        starship: {
+            shield: 100
+        },
+        commet: {
+            speed: 9 * SCALE,
+            damage: 20,
+            creationRate: 40  // if higher less will be created
+        },
+        bomb: {
+            creationRate: 50
+        },
+        guardShield: {
+            creationRate: 35
+        },
+        starshipShield: {
+            creationRate: 25
+        }
+    },
+    // lvl 7
+    {
+        time: 3,
+        background: 'img-path',
+        guard: {
+            shield: 100, 
+            defuseRadius: 70
+        },
+        starship: {
+            shield: 100
+        },
+        commet: {
+            speed: 9 * SCALE,
+            damage: 20,
+            creationRate: 40  // if higher less will be created
+        },
+        bomb: {
+            creationRate: 50
+        },
+        guardShield: {
+            creationRate: 35
+        },
+        starshipShield: {
+            creationRate: 25
+        }
+    },
+    // lvl 8
+    {
+        time: 3,
+        background: 'img-path',
+        guard: {
+            shield: 100, 
+            defuseRadius: 70
+        },
+        starship: {
+            shield: 100
+        },
+        commet: {
+            speed: 9 * SCALE,
+            damage: 20,
+            creationRate: 40  // if higher less will be created
+        },
+        bomb: {
+            creationRate: 50
+        },
+        guardShield: {
+            creationRate: 35
+        },
+        starshipShield: {
+            creationRate: 25
+        }
+    },
+    // lvl 9
+    {
+        time: 3,
+        background: 'img-path',
+        guard: {
+            shield: 100, 
+            defuseRadius: 70
+        },
+        starship: {
+            shield: 100
+        },
+        commet: {
+            speed: 9 * SCALE,
+            damage: 20,
+            creationRate: 40  // if higher less will be created
+        },
+        bomb: {
+            creationRate: 50
+        },
+        guardShield: {
+            creationRate: 35
+        },
+        starshipShield: {
+            creationRate: 25
+        }
+    },
+    // lvl 10
+    {
+        time: 3,
+        background: 'img-path',
+        guard: {
+            shield: 100, 
+            defuseRadius: 70
+        },
+        starship: {
+            shield: 100
+        },
+        commet: {
+            speed: 9 * SCALE,
+            damage: 20,
+            creationRate: 40  // if higher less will be created
+        },
+        bomb: {
+            creationRate: 50
+        },
+        guardShield: {
+            creationRate: 35
+        },
+        starshipShield: {
+            creationRate: 25
         }
     }
 ];
-
-// Share on Social Networks
-var Share = function() {
-    var inst = this;
-
-    inst.facebook = function(score) {
-
-    }
-
-    inst.twitter = function(score) {
-
-    }
-
-    inst.googlePlus = function(score) {
-
-    }
-    
-}
 
 
 // Define global SpaceGuard object.
