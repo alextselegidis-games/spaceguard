@@ -1,24 +1,30 @@
 /**********************************************************************************
- * SpaceGuard - Simple HTML5 Browser Game
+ * SpaceGuard - Simple JavaScript Game
  * 
  * Initialize the global sg object with the canvas id and the game will start 
  * running automatically. 
- *
  * @example <body onload="sg.initialize('canvas-element-id');">
+ * 
  * @license GPLv3
+ * @version 0.7
  * @link GitHub https://github.com/alextselegidis/SpaceGuard
  * @link Live http://alextselegidis.com/spaceguard
+ *
+ * Remaining Tasks:
+ * @task Add animation to objects (guard, menus, parallax space background).
+ * @task Add sound effects (explosions, background music, power ups).
+ * @task Social network sharing of final scores (Facebook, Googel+, Twitter).
  **********************************************************************************/
 
 // Global Constants
-var SCALE = 1;
+var SCALE = 1; 
 var CANVAS_WIDTH = 800; // px
 var CANVAS_HEIGHT = 600; // px
 var KEY_ESCAPE = 27;
 var LOOP_DELAY = 10;
 var GUARD_SHIELD_BASE = 10;
 var STARSHIP_SHIELD_BASE = 10;
-var COMMET_SCORE = 5;
+var COMET_SCORE = 5;
 var SHIELD_SCORE = 3;
 var BOMB_SCORE = 5;
 var LEVEL_SCORE = 100;
@@ -39,34 +45,36 @@ var SpaceGuard = function() {
     inst.guard = {
         x: undefined,
         y: undefined,
-        width: 30 * SCALE,
-        height: 39 * SCALE,
+        width: 50 * SCALE,
+        height: 50 * SCALE,
         shield: 100,
         defuseRadius: 50
     };
     inst.starship = {
         x: undefined,
         y: undefined,
-        width: 161 * SCALE,
-        height: 140 * SCALE,
+        width: 135 * SCALE,
+        height: 135 * SCALE,
         shield: 100
     };
-    inst.sprites;
-    inst.commets;
+    inst.sprites = new Object();
+    inst.comets;
     inst.frameUpdateTime = 1000 / 60; // 60 fps
     inst.lastUpdateTime; // last time canvas was updated
     inst.levelStartTime; // level start time - the player needs to survive for some minutes until the level is finished
     inst.pauseTime; // Stores the paused time period.
     inst.randomRollTime = 3000;
     inst.lastRollTime = new Date();
-    inst.level = 0; // level var starts from 0, not from 1
+    inst.level = 0; // level var starts from 0, not from 1 (due to array index base)
     inst.score = 0;
     inst.randomObjects = [];
     inst.onDefuse = false;
     inst.currentDefuseRadius = 0; // used for graphic display
+    inst.spaceBackground;
     
     /**
      * The game must start with this method.
+     * 
      * @param {string} canvasId Canvas DOM element.
      * @returns {object} Returns game instance.
      */
@@ -75,23 +83,22 @@ var SpaceGuard = function() {
         inst.ctx = inst.canvas.getContext('2d');
 
         // load image sprites
-        var imgs = document.createElement('div');
-        imgs.innerHTML = 
-            '<img id="guard" src="img/guard.png" style="display:none;">' + 
-            '<img id="commet" src="img/commet.png" style="display:none;">' + 
-            '<img id="bomb" src="img/bomb.png" style="display:none;">' + 
-            '<img id="gshield" src="img/gshield.png" style="display:none;">' + 
-            '<img id="sshield" src="img/sshield.png" style="display:none;">' + 
-            '<img id="starship" src="img/starship.png" style="display:none;">';
-        document.body.appendChild(imgs);
-        inst.sprites = {
-            guard: document.getElementById('guard'),
-            commet: document.getElementById('commet'),
-            bomb: document.getElementById('bomb'),
-            gshield: document.getElementById('gshield'),
-            sshield: document.getElementById('sshield'),
-            starship: document.getElementById('starship')
-        };
+        GameSprites.forEach(function(sprite) {
+            // var sprite = GameSprites[i];
+            var img = document.createElement('img');
+            img.id = sprite.id;
+            img.src = sprite.src;
+            img.style.display = 'none';
+            document.body.appendChild(img);
+            inst.sprites[sprite.id] = img; // store the element handle for later use
+
+            // draw main screen when the images are finished loading
+            if (img.id == 'introScreen' && !Environment.isMobile()) {
+                img.onload = function() {
+                    inst.drawIntroScreen();
+                }
+            }
+        });
 
         inst.load();
         return inst;
@@ -99,12 +106,14 @@ var SpaceGuard = function() {
 
     /**
      * Loads needed resource files - display initial screen to user.
+     * 
      * @returns {object} Returns game instance.
      */
     inst.load = function() {        
         // init canvas
         inst.canvas.width = CANVAS_WIDTH * SCALE;
         inst.canvas.height = CANVAS_HEIGHT * SCALE;
+        inst.canvas.style.background = '#000';
         inst.cx = inst.canvas.width / 2;
         inst.cy = inst.canvas.height / 2; 
         inst.ctx.rect(0, 0, inst.canvas.width, inst.canvas.height);
@@ -121,32 +130,7 @@ var SpaceGuard = function() {
             return;
         }
 
-        // background
-        var gradient = inst.ctx.createRadialGradient(inst.cx, inst.cy, 400, inst.cx, inst.cy, 100);
-        gradient.addColorStop(1, '#000');
-        gradient.addColorStop(0, '#222');
-        inst.ctx.fillStyle = gradient;
-        inst.ctx.fill(); 
-
-        // planet
-        inst.ctx.beginPath();
-        inst.ctx.arc(inst.cx, inst.cy, 80 * SCALE, 2 * Math.PI, false);
-        gradient = inst.ctx.createLinearGradient(inst.cx, inst.cy, 30, 30);
-        gradient.addColorStop(0, '#99547C');
-        gradient.addColorStop(1, '#fff');
-        inst.ctx.fillStyle = gradient;
-        inst.ctx.fill();
-        inst.ctx.lineWidth = 5 * SCALE;
-        inst.ctx.strokeStyle = '#693A55';
-        inst.ctx.stroke();
-
-        // text
-        inst.ctx.font = (30 * SCALE).toString() + 'pt helvetica';
-        inst.ctx.textAlign = 'center';
-        inst.ctx.fillStyle = '#fff';
-        inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 150 * SCALE);
-
-        inst.canvas.style['cursor'] = 'default';
+        inst.drawIntroScreen();
         
         // events
         inst.canvas.addEventListener('click', inst.onClick, false);
@@ -168,19 +152,19 @@ var SpaceGuard = function() {
         inst.randomObjects = [];
         inst.guard.x = inst.cx;
         inst.guard.y = inst.cy;
-        inst.guard.shield = lvl[inst.level].guard.shield;
-        inst.guard.defuseRadius = lvl[inst.level].guard.defuseRadius;
+        inst.guard.shield = GameLevels[inst.level].guard.shield;
+        inst.guard.defuseRadius = GameLevels[inst.level].guard.defuseRadius;
         inst.guard.img = document.getElementById('guard');
         inst.starship.x = inst.cx - (inst.starship.width / 2);
         inst.starship.y = inst.cy - (inst.starship.height / 2);
-        inst.starship.shield = lvl[inst.level].starship.shield;
+        inst.starship.shield = GameLevels[inst.level].starship.shield;
         inst.starship.img = document.getElementById('starship');
 
-        // create commets
-        inst.commets = [];
+        // create comets
+        inst.comets = [];
         for (var i = 0; i < 10; i++) {
-            inst.commets.push(new Commet(inst));
-            inst.commets[i].position();
+            inst.comets.push(new Comet(inst));
+            inst.comets[i].position();
         }
 
         // add event listeners
@@ -190,21 +174,16 @@ var SpaceGuard = function() {
         inst.canvas.style['cursor'] = 'none';
 
         // splash screen
-        inst.splash('Level ' + (inst.level + 1), 1000, inst.loop);
+        inst.splash('Level ' + (inst.level + 1), 1000, function() {
+            requestAnimFrame(inst.loop);
+        });
 
         return inst;
     };
     
     inst.drawBackground = function() {
-        // space
-        inst.cx = inst.canvas.width / 2;
-        inst.cy = inst.canvas.height / 2; 
-        inst.ctx.rect(0, 0, inst.canvas.width, inst.canvas.height);
-        var gradient = inst.ctx.createRadialGradient(inst.cx, inst.cy, 400 * SCALE, inst.cx, inst.cy, 100);
-        gradient.addColorStop(1, '#000');
-        gradient.addColorStop(0, '#222');
-        inst.ctx.fillStyle = gradient;
-        inst.ctx.fill();
+        // clear stuff
+        inst.ctx.clearRect(0, 0, inst.canvas.width, inst.canvas.height);
 
         // starship
         inst.ctx.drawImage(inst.sprites.starship, inst.starship.x * SCALE, inst.starship.y * SCALE);
@@ -218,27 +197,27 @@ var SpaceGuard = function() {
             inst.ctx.beginPath();
             inst.ctx.strokeStyle = '#57BCFF';
             inst.ctx.lineWidth = 2;
-            inst.ctx.arc(inst.guard.x + 15, inst.guard.y + 15, inst.currentDefuseRadius, 0, 2 * Math.PI);
+            inst.ctx.arc(inst.guard.x + 25, inst.guard.y + 25, inst.currentDefuseRadius, 0, 2 * Math.PI);
             inst.ctx.stroke();
         }
 
-        // commets
-        inst.commets.forEach(function(commet) {
-            commet.draw();
-            if (inst.collides(commet, inst.guard)) {
-                commet.destroyed = true;
-                inst.guard.shield -= Math.ceil(commet.damage / 4); // quarter damage for the shield
-                inst.score += COMMET_SCORE; // fixed value  
+        // comets
+        inst.comets.forEach(function(comet) {
+            comet.draw();
+            if (inst.collides(comet, inst.guard)) {
+                comet.destroyed = true;
+                inst.guard.shield -= Math.ceil(comet.damage / 4); // quarter damage for the shield
+                inst.score += COMET_SCORE; // fixed value  
             }
             
-            if (inst.collides(commet, inst.starship)) {
-                commet.destroyed = true;
-                inst.starship.shield -= commet.damage;  
+            if (inst.collides(comet, inst.starship)) {
+                comet.destroyed = true;
+                inst.starship.shield -= comet.damage;  
             }
             
-            if (commet.destroyed) { // remove it from the array
-                var index = inst.commets.indexOf(commet);
-                if (index > -1) inst.commets.splice(index, 1);
+            if (comet.destroyed) { // remove it from the array
+                var index = inst.comets.indexOf(comet);
+                if (index > -1) inst.comets.splice(index, 1);
             }
         });
         
@@ -248,18 +227,18 @@ var SpaceGuard = function() {
         creationBarrier = (time < CREATION_BARRIER_STEP) ? (CREATION_BARRIER_STEP - time) / 10 : 0; 
 
         // When the level is about to end then we need to stop once again
-        // the creation of new commets
-        if (time > CREATION_BARRIER_STEP && (lvl[inst.level].time * 60 * 1000) - time < CREATION_BARRIER_STEP) {
-            creationBarrier = (CREATION_BARRIER_STEP - ((lvl[inst.level].time * 60 * 1000) - time)) / 10;
+        // the creation of new comets
+        if (time > CREATION_BARRIER_STEP && (GameLevels[inst.level].time * 60 * 1000) - time < CREATION_BARRIER_STEP) {
+            creationBarrier = (CREATION_BARRIER_STEP - ((GameLevels[inst.level].time * 60 * 1000) - time)) / 10;
             if (creationBarrier > CREATION_BARRIER_STEP) creationBarrier = CREATION_BARRIER_STEP;
         }
 
         // create objects
         var rand = Math.ceil(Math.random() * 1000) - creationBarrier;
-        if (rand >= inst.convertRate(lvl[inst.level].commet.creationRate)) {
-            var commet = new Commet(inst);
-            commet.position();
-            inst.commets.push(commet);
+        if (rand >= inst.convertRate(GameLevels[inst.level].comet.creationRate)) {
+            var comet = new Comet(inst);
+            comet.position();
+            inst.comets.push(comet);
         }
     };
     
@@ -270,21 +249,21 @@ var SpaceGuard = function() {
 
         // Create Bomb
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= inst.convertRate(lvl[inst.level].bomb.creationRate) && roll) {
+        if (rand >= inst.convertRate(GameLevels[inst.level].bomb.creationRate) && roll) {
             inst.randomObjects.push(new Bomb(inst));
             creation = true;
         }
         
         // Create Guard Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= inst.convertRate(lvl[inst.level].guardShield.creationRate) && roll && !creation) {
+        if (rand >= inst.convertRate(GameLevels[inst.level].guardShield.creationRate) && roll && !creation) {
             inst.randomObjects.push(new GuardShield(inst));
             creation = true;
         }
         
         // Create Starship Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= inst.convertRate(lvl[inst.level].starshipShield.creationRate) && roll && !creation) {
+        if (rand >= inst.convertRate(GameLevels[inst.level].starshipShield.creationRate) && roll && !creation) {
             inst.randomObjects.push(new StarshipShield(inst));   
             creation = true;
         }
@@ -333,7 +312,7 @@ var SpaceGuard = function() {
             inst.loop();
             return;
         }
-        requestAnimationFrame(inst.pause, inst.canvas);
+        requestAnimFrame(inst.pause, inst.canvas);
     };
 
     inst.loop = function() {
@@ -364,18 +343,18 @@ var SpaceGuard = function() {
             inst.onPause = false;
             //inst.level = 0; 
             inst.clearEventListeners();
-            message = ((inst.guard.shield <= 0) ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' > Score ' + inst.score + ' (-50%)';
+            message = ((inst.guard.shield <= 0) ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' Score ' + inst.score + ' (-50%)';
             inst.splash(message, 2000, inst.load);
             inst.score = (inst.score > 0) ? Math.round(inst.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
             return;
         }
         
-        if (inst.datediff(new Date(), inst.levelStartTime).ms > lvl[inst.level].time * 60 * 1000) {
+        if (inst.datediff(new Date(), inst.levelStartTime).ms > GameLevels[inst.level].time * 60 * 1000) {
             inst.onGame = false;
             inst.onPause = false;
             
 
-            if (inst.level < lvl.length) {
+            if (inst.level < GameLevels.length) {
                 message = 'Level Completed!';
                 callback = inst.game;
                 duration = 2000;
@@ -391,7 +370,7 @@ var SpaceGuard = function() {
             return;
         }
 
-        requestAnimationFrame(inst.loop, inst.canvas);
+        requestAnimFrame(inst.loop, inst.canvas);
     };
 
     inst.clearEventListeners = function() {
@@ -403,8 +382,8 @@ var SpaceGuard = function() {
     };
 
     inst.onMouseMove = function(e) {
-        inst.guard.x = (e.x - inst.canvas.offsetLeft - 15) * SCALE;
-        inst.guard.y = (e.y - inst.canvas.offsetTop - 15) * SCALE;
+        inst.guard.x = (e.pageX - inst.canvas.offsetLeft - 15) * SCALE;
+        inst.guard.y = (e.pageY - inst.canvas.offsetTop - 15) * SCALE;
     };
 
     inst.onMouseOut = function(e) {
@@ -481,7 +460,7 @@ var SpaceGuard = function() {
     inst.drawStats = function(onPause) {
         var currDate = (!onPause) ? new Date() : inst.lastUpdateTime;
         var time = inst.datediff(currDate, inst.levelStartTime);
-        var diff = new Date((lvl[inst.level].time * 60 * 1000) - time.ms);
+        var diff = new Date((GameLevels[inst.level].time * 60 * 1000) - time.ms);
         var minutes = (diff.getMinutes() < 10) ? '0' + diff.getMinutes() : diff.getMinutes();
         var seconds = (diff.getSeconds() < 10) ? '0' + diff.getSeconds() : diff.getSeconds();
 
@@ -554,7 +533,7 @@ var SpaceGuard = function() {
                 inst.currentDefuseRadius = 0;
                 inst.onDefuse = false;
             }
-        }, 10);
+        }, 7);
     };
 
     /**
@@ -578,7 +557,7 @@ var SpaceGuard = function() {
                 return;
             }
 
-            requestAnimationFrame(drawSplashScreen, inst.canvas);
+            requestAnimFrame(drawSplashScreen, inst.canvas);
         }
         drawSplashScreen();
     };
@@ -619,23 +598,43 @@ var SpaceGuard = function() {
         }
         inst.ctx.fillText(line, x, y);
     };
+
+    inst.timestamp = function() {
+        return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
+    };
+
+    inst.drawIntroScreen = function() {
+        // splash
+        inst.ctx.drawImage(inst.sprites.introScreen, 1, 1);
+
+        // text
+        inst.ctx.font = (30 * SCALE).toString() + 'pt helvetica';
+        inst.ctx.textAlign = 'center';
+        inst.ctx.fillStyle = '#fff';
+        inst.ctx.fillText('SpaceGuard', inst.cx, inst.cy - 220 * SCALE);
+        inst.ctx.font = (20 * SCALE).toString() + 'pt helvetica';
+        inst.ctx.fillText('Click to Start', inst.cx, inst.cy + 250 * SCALE);
+        inst.canvas.style['cursor'] = 'default';
+
+        return inst;
+    };
 };
 
 /**
- * (OBJECT) Handles the commets animation.
+ * (OBJECT) Handles the comets animation.
  * @param {object} sg SpaceGuard game instance.
  */
-var Commet = function(sg) {
+var Comet = function(sg) {
     var inst = this;
     inst.sg = sg;
     inst.x;
     inst.y;
     inst.a; // extra direction handling
-    inst.width = 15 * SCALE;
-    inst.height = 15 * SCALE;
-    inst.speedX = lvl[inst.sg.level].commet.speed * Math.random();
-    inst.speedY = lvl[inst.sg.level].commet.speed * Math.random();
-    inst.damage = Math.floor(Math.random() * lvl[inst.sg.level].commet.damage);
+    inst.width = 60 * SCALE;
+    inst.height = 60 * SCALE;
+    inst.speedX = GameLevels[inst.sg.level].comet.speed * Math.random();
+    inst.speedY = GameLevels[inst.sg.level].comet.speed * Math.random();
+    inst.damage = Math.floor(Math.random() * GameLevels[inst.sg.level].comet.damage);
     inst.dfs = 30 * SCALE; // initial distance from scene
     inst.destroyed = false;
     
@@ -674,9 +673,21 @@ var Commet = function(sg) {
         inst.x += inst.a * Math.ceil(Math.random() * inst.speedX) + Math.round(inst.speedX / 2);
         inst.y += inst.a * Math.ceil(Math.random() * inst.speedY) + Math.round(inst.speedY / 2);
         
+        // check if comet is out of map
+        inst.isOutOfMap();
+
         // draw
-        inst.sg.ctx.drawImage(inst.sg.sprites.commet, inst.x, inst.y);
+        inst.sg.ctx.drawImage(inst.sg.sprites.comet, inst.x, inst.y);
     };
+
+    inst.isOutOfMap = function() {
+        // if the comet is too far from the map frame it means that 
+        // it needs to be destroyed cause it will no longer play any 
+        // part on the game
+        var dist = Math.abs(Math.sqrt(Math.pow(inst.x - inst.sg.cx, 2) + Math.pow(inst.y - inst.sg.cy, 2)));
+        if (dist > (inst.sg.canvas.width))
+            inst.destroyed = true;
+    }
 };
 
 /**
@@ -691,15 +702,15 @@ var GuardShield = function(sg) {
     inst.destroyed = false;
     inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
     inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
-    inst.width = 12 * SCALE;
-    inst.height = 12 * SCALE;
+    inst.width = 30 * SCALE;
+    inst.height = 30 * SCALE;
     inst.shield = 10; // base power up value
     inst.value = Math.round(Math.random() * inst.shield) + inst.shield;
 
     inst.trigger = function() {
         inst.sg.guard.shield += inst.value;
-         if (inst.sg.guard.shield > lvl[inst.sg.level].guard.shield) 
-            inst.sg.guard.shield = lvl[inst.sg.level].guard.shield;
+         if (inst.sg.guard.shield > GameLevels[inst.sg.level].guard.shield) 
+            inst.sg.guard.shield = GameLevels[inst.sg.level].guard.shield;
         inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
     };
@@ -716,15 +727,15 @@ var StarshipShield = function(sg) {
     inst.color = '#36EB57';
     inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
     inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
-    inst.width = 12 * SCALE;
-    inst.height = 12 * SCALE;
+    inst.width = 30 * SCALE;
+    inst.height = 30 * SCALE;
     inst.shield = 10; // base power up value
     inst.value = Math.round(Math.random() * inst.shield) + inst.shield;
 
     inst.trigger = function() {
         inst.sg.starship.shield += inst.value;
-        if (inst.sg.starship.shield > lvl[inst.sg.level].starship.shield) 
-            inst.sg.starship.shield = lvl[inst.sg.level].starship.shield;
+        if (inst.sg.starship.shield > GameLevels[inst.sg.level].starship.shield) 
+            inst.sg.starship.shield = GameLevels[inst.sg.level].starship.shield;
         inst.sg.score += SHIELD_SCORE;
         inst.destroyed = true;
     };
@@ -741,8 +752,8 @@ var Bomb = function(sg) {
     inst.color = '#6C17AD';
     inst.x = Math.round(Math.random() * inst.sg.canvas.width * SCALE);
     inst.y = Math.round(Math.random() * inst.sg.canvas.height * SCALE);
-    inst.width = 12 * SCALE;
-    inst.height = 12 * SCALE;
+    inst.width = 30 * SCALE;
+    inst.height = 30 * SCALE;
     inst.damage = 20; // base damage value
     inst.value = Math.ceil(Math.random() * inst.damage) + inst.damage;
 
@@ -752,6 +763,7 @@ var Bomb = function(sg) {
     };
 }
 
+// Check user agent device type.
 // @link http://stackoverflow.com/a/16755700/1718162
 var Environment = {
     //mobile or desktop compatible event name, to be used with '.on' function
@@ -780,28 +792,40 @@ var Environment = {
     }
 };
 
+// Cross Browser requestAnimationFrame compatibility.
+// @link http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
 /**
  * Level Definition
  *
  * Adjusts the way SpaceGuard is going to handle each level. The game 
  * should become more and more hard to play as the user progress advances.
+ * @type {Array}
  */
-var lvl = [
+var GameLevels = [
     // lvl 1
     {
         time: 1, // minutes
         background: 'img-path', // image element id
         guard: {
             shield: 100, // % percent
-            defuseRadius: 50
+            defuseRadius: 80
         },
         starship: {
             shield: 100 // % percent
         },
-        commet: {
+        comet: {
             speed: 7 * SCALE, // points
             damage: 10, // points
-            creationRate: 15  // % - if higher less will be created
+            creationRate: 15  // % percent
         },
         bomb: {
             creationRate: 35 // % percent
@@ -819,12 +843,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 55
+            defuseRadius: 85
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 8 * SCALE,
             damage: 13,
             creationRate: 20  // if higher less will be created
@@ -845,12 +869,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 60
+            defuseRadius: 85
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 8 * SCALE,
             damage: 13,
             creationRate: 25  // if higher less will be created
@@ -871,12 +895,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 65
+            defuseRadius: 90
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 8 * SCALE,
             damage: 20,
             creationRate: 35  // if higher less will be created
@@ -897,12 +921,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 90
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -923,12 +947,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 95
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -949,12 +973,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 95
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -975,12 +999,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 95
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -1001,12 +1025,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 100
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -1027,12 +1051,12 @@ var lvl = [
         background: 'img-path',
         guard: {
             shield: 100, 
-            defuseRadius: 70
+            defuseRadius: 110
         },
         starship: {
             shield: 100
         },
-        commet: {
+        comet: {
             speed: 9 * SCALE,
             damage: 20,
             creationRate: 40  // if higher less will be created
@@ -1049,6 +1073,44 @@ var lvl = [
     }
 ];
 
+/**
+ * Sprites Definition
+ *
+ * All the game sprites are loaded dynamically by this script. Just
+ * add a new item on the array.
+ * 
+ * @type {Array}
+ */
+var GameSprites = [  
+    {
+        id: 'guard',
+        src: 'img/guard.png'
+    },
+    {
+        id: 'comet',
+        src: 'img/comet.png'
+    },
+    {
+        id: 'bomb',
+        src: 'img/bomb.png'
+    },
+    {
+        id: 'gshield',
+        src: 'img/gshield.png'
+    },
+    {
+        id: 'sshield',
+        src: 'img/sshield.png'
+    },
+    {
+        id: 'starship',
+        src: 'img/starship.png'
+    },
+    {
+        id: 'introScreen',
+        src: 'img/introScreen.png'
+    }
+];
 
 // Define global SpaceGuard object.
 var sg = new SpaceGuard();
