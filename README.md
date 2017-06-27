@@ -1,6 +1,10 @@
 SpaceGuard
 ==========
 
-SpaceGuard is a simple canvas game made with JavaScript. Installation instructions will be added once the first version of the game is complete.
+**Update:** A new version is under development! Check it out at [bigblackcode.github.io](http://bigblackcode.github.io/). 
 
-You can preview the game in the demo page: http://alextselegidis.com/spaceguard
+SpaceGuard is a simple canvas game made with JavaScript. 
+ 
+The original purpose of this repository was to experiment with the graphic APIs of the browsers and the implementation of simple game mechanics and animation.
+
+Play the demo game at http://alextselegidis.com/spaceguard 
