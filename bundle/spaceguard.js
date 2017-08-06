@@ -84,7 +84,7 @@ function requestAnimFrame() {
 
 // Check user agent device type.
 // @link http://stackoverflow.com/a/16755700/1718162
-var Environment = exports.Environment = {
+exports.default = {
     //mobile or desktop compatible event name, to be used with '.on' function
     TOUCH_DOWN_EVENT_NAME: 'mousedown touchstart',
     TOUCH_UP_EVENT_NAME: 'mouseup touchend',
@@ -107,7 +107,7 @@ var Environment = exports.Environment = {
         return navigator.userAgent.match(/IEMobile/i);
     },
     isMobile: function isMobile() {
-        return Environment.isAndroid() || Environment.isBlackBerry() || Environment.isIOS() || Environment.isOpera() || Environment.isWindows();
+        return this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows();
     }
 };
 
@@ -126,9 +126,9 @@ var _Environment = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Initialize the game.
 window.requestAnimFrame = _Environment.requestAnimFrame;
-
-var game = new _SpaceGuard2.default();
+window.spaceguard = new _SpaceGuard2.default();
 
 /***/ }),
 /* 2 */
@@ -140,7 +140,6 @@ var game = new _SpaceGuard2.default();
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.SpaceGuard = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -148,24 +147,45 @@ var _Constants = __webpack_require__(3);
 
 var _Environment = __webpack_require__(0);
 
+var _Environment2 = _interopRequireDefault(_Environment);
+
 var _Comet = __webpack_require__(4);
+
+var _Comet2 = _interopRequireDefault(_Comet);
 
 var _Bomb = __webpack_require__(5);
 
+var _Bomb2 = _interopRequireDefault(_Bomb);
+
 var _StarshipShield = __webpack_require__(6);
+
+var _StarshipShield2 = _interopRequireDefault(_StarshipShield);
 
 var _GameSprites = __webpack_require__(7);
 
+var _GameSprites2 = _interopRequireDefault(_GameSprites);
+
 var _GuardShield = __webpack_require__(8);
 
-var _Sprites = __webpack_require__(9);
+var _GuardShield2 = _interopRequireDefault(_GuardShield);
+
+var _Levels = __webpack_require__(10);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * Main game class
+ * SpaceGuard
+ *
+ * Main game class that handles core operations and loops.
  */
-var SpaceGuard = exports.SpaceGuard = function () {
+var SpaceGuard = function () {
+    /**
+     * Class constructor.
+     */
     function SpaceGuard() {
         _classCallCheck(this, SpaceGuard);
 
@@ -205,7 +225,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
     }
 
     /**
-     * The game must start with this method.
+     * Initialize game platform.
      *
      * @param {string} canvasId Canvas DOM element.
      * @returns {object} Returns game instance.
@@ -221,7 +241,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
             this.ctx = this.canvas.getContext('2d');
 
             // load image sprites
-            _GameSprites.GameSprites.forEach(function (sprite) {
+            _GameSprites2.default.forEach(function (sprite) {
                 // let sprite = GameSprites[i];
                 var img = document.createElement('img');
                 img.id = sprite.id;
@@ -231,7 +251,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
                 _this.sprites[sprite.id] = img; // store the element handle for later use
 
                 // draw main screen when the images are finished loading
-                if (img.id == 'introScreen' && !_Environment.Environment.isMobile()) {
+                if (img.id == 'introScreen' && !_Environment2.default.isMobile()) {
                     img.onload = function () {
                         _this.drawIntroScreen();
                     };
@@ -246,7 +266,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
 
 
         /**
-         * Loads needed resource files - display initial screen to user.
+         * Load needed resource files - display initial screen to user.
          *
          * @returns {object} Returns game instance.
          */
@@ -260,7 +280,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
             this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
 
             // Check if user agent is a mobile device.
-            if (_Environment.Environment.isMobile()) {
+            if (_Environment2.default.isMobile()) {
                 this.ctx.fillStyle = '#000';
                 this.ctx.fillRect(0, 0, this.canvas.width * _Constants.SCALE, this.canvas.height * _Constants.SCALE);
                 this.ctx.fillStyle = '#fff';
@@ -273,8 +293,8 @@ var SpaceGuard = exports.SpaceGuard = function () {
             this.drawIntroScreen();
 
             // events
-            this.canvas.addEventListener('click', this.onClick, false);
-            this.canvas.addEventListener('contextmenu', this.onContextMenu, false);
+            this.canvas.addEventListener('click', this.onClick.bind(this), false);
+            this.canvas.addEventListener('contextmenu', this.onContextMenu.bind(this), false);
 
             return this;
         }
@@ -283,7 +303,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
 
 
         /**
-         * Start game - handles main loop
+         * Execute main game loop.
          * @returns {object} Returns game instance.
          */
         value: function game() {
@@ -297,25 +317,25 @@ var SpaceGuard = exports.SpaceGuard = function () {
             this.randomObjects = [];
             this.guard.x = this.cx;
             this.guard.y = this.cy;
-            this.guard.shield = GameLevels[this.level].guard.shield;
-            this.guard.defuseRadius = GameLevels[this.level].guard.defuseRadius;
+            this.guard.shield = _Levels2.default[this.level].guard.shield;
+            this.guard.defuseRadius = _Levels2.default[this.level].guard.defuseRadius;
             this.guard.img = document.getElementById('guard');
             this.starship.x = this.cx - this.starship.width / 2;
             this.starship.y = this.cy - this.starship.height / 2;
-            this.starship.shield = GameLevels[this.level].starship.shield;
+            this.starship.shield = _Levels2.default[this.level].starship.shield;
             this.starship.img = document.getElementById('starship');
 
             // create comets
             this.comets = [];
             for (var i = 0; i < 10; i++) {
-                this.comets.push(new _Comet.Comet(this));
+                this.comets.push(new _Comet2.default(this));
                 this.comets[i].position();
             }
 
             // add event listeners
-            this.canvas.addEventListener('keyup', this.onKeyUp);
-            this.canvas.addEventListener('mousemove', this.onMouseMove);
-            this.canvas.addEventListener('mouseout', this.onMouseOut);
+            this.canvas.addEventListener('keyup', this.onKeyUp.bind(this));
+            this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+            this.canvas.addEventListener('mouseout', this.onMouseOut.bind(this));
             this.canvas.style['cursor'] = 'none';
 
             // splash screen
@@ -327,19 +347,29 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'drawBackground',
+
+
+        /**
+         * Draw the game background.
+         */
         value: function drawBackground() {
-            // clear stuff
+            // Clear stuff
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // starship
+            // Starship
             this.ctx.drawImage(this.sprites.starship, this.starship.x * _Constants.SCALE, this.starship.y * _Constants.SCALE);
         }
     }, {
         key: 'drawObjects',
+
+
+        /**
+         * Draw the game objects.
+         */
         value: function drawObjects() {
             var _this3 = this;
 
-            // guard
+            // Guard
             this.ctx.drawImage(this.sprites.guard, this.guard.x * _Constants.SCALE, this.guard.y * _Constants.SCALE);
 
             if (this.onDefuse) {
@@ -350,7 +380,7 @@ var SpaceGuard = exports.SpaceGuard = function () {
                 this.ctx.stroke();
             }
 
-            // comets
+            // Comets
             this.comets.forEach(function (comet) {
                 comet.draw();
                 if (_this3.collides(comet, _this3.guard)) {
@@ -371,28 +401,31 @@ var SpaceGuard = exports.SpaceGuard = function () {
                 }
             });
 
-            // When the level starts there is a creation barrier that will 
-            // slowly fade
+            // When the level starts there is a creation barrier that will slowly fade.
             var time = this.datediff(new Date(), this.levelStartTime).ms;
             creationBarrier = time < _Constants.CREATION_BARRIER_STEP ? (_Constants.CREATION_BARRIER_STEP - time) / 10 : 0;
 
-            // When the level is about to end then we need to stop once again
-            // the creation of new comets
-            if (time > _Constants.CREATION_BARRIER_STEP && GameLevels[this.level].time * 60 * 1000 - time < _Constants.CREATION_BARRIER_STEP) {
-                creationBarrier = (_Constants.CREATION_BARRIER_STEP - (GameLevels[this.level].time * 60 * 1000 - time)) / 10;
+            // When the level is about to end then we need to stop once again the creation of new comets.
+            if (time > _Constants.CREATION_BARRIER_STEP && _Levels2.default[this.level].time * 60 * 1000 - time < _Constants.CREATION_BARRIER_STEP) {
+                creationBarrier = (_Constants.CREATION_BARRIER_STEP - (_Levels2.default[this.level].time * 60 * 1000 - time)) / 10;
                 if (creationBarrier > _Constants.CREATION_BARRIER_STEP) creationBarrier = _Constants.CREATION_BARRIER_STEP;
             }
 
-            // create objects
+            // Create objects
             var rand = Math.ceil(Math.random() * 1000) - creationBarrier;
-            if (rand >= this.convertRate(GameLevels[this.level].comet.creationRate)) {
-                var comet = new _Comet.Comet(this);
+            if (rand >= this.convertRate(_Levels2.default[this.level].comet.creationRate)) {
+                var comet = new _Comet2.default(this);
                 comet.position();
                 this.comets.push(comet);
             }
         }
     }, {
         key: 'drawRandomObjects',
+
+
+        /**
+         * Draw random game objects.
+         */
         value: function drawRandomObjects() {
             var _this4 = this;
 
@@ -402,22 +435,22 @@ var SpaceGuard = exports.SpaceGuard = function () {
 
             // Create Bomb
             rand = Math.round(Math.random() * 1000) + 1;
-            if (rand >= this.convertRate(GameLevels[this.level].bomb.creationRate) && roll) {
-                this.randomObjects.push(new _Bomb.Bomb(this));
+            if (rand >= this.convertRate(_Levels2.default[this.level].bomb.creationRate) && roll) {
+                this.randomObjects.push(new _Bomb2.default(this));
                 creation = true;
             }
 
             // Create Guard Shield
             rand = Math.round(Math.random() * 1000) + 1;
-            if (rand >= this.convertRate(GameLevels[this.level].guardShield.creationRate) && roll && !creation) {
-                this.randomObjects.push(new _GuardShield.GuardShield(this));
+            if (rand >= this.convertRate(_Levels2.default[this.level].guardShield.creationRate) && roll && !creation) {
+                this.randomObjects.push(new _GuardShield2.default(this));
                 creation = true;
             }
 
             // Create Starship Shield
             rand = Math.round(Math.random() * 1000) + 1;
-            if (rand >= this.convertRate(GameLevels[this.level].starshipShield.creationRate) && roll && !creation) {
-                this.randomObjects.push(new _StarshipShield.StarshipShield(this));
+            if (rand >= this.convertRate(_Levels2.default[this.level].starshipShield.creationRate) && roll && !creation) {
+                this.randomObjects.push(new _StarshipShield2.default(this));
                 creation = true;
             }
 
@@ -445,6 +478,11 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'pause',
+
+
+        /**
+         * Pause the game and display the pause menu.
+         */
         value: function pause() {
             this.ctx.fillStyle = 'black';
             this.ctx.fillRect(0, 0, this.canvas.width * _Constants.SCALE, this.canvas.height * _Constants.SCALE);
@@ -469,6 +507,11 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'loop',
+
+
+        /**
+         * Handles main game loop.
+         */
         value: function loop() {
             var message = void 0,
                 callback = void 0,
@@ -504,11 +547,11 @@ var SpaceGuard = exports.SpaceGuard = function () {
                 return;
             }
 
-            if (this.datediff(new Date(), this.levelStartTime).ms > GameLevels[this.level].time * 60 * 1000) {
+            if (this.datediff(new Date(), this.levelStartTime).ms > _Levels2.default[this.level].time * 60 * 1000) {
                 this.onGame = false;
                 this.onPause = false;
 
-                if (this.level < GameLevels.length) {
+                if (this.level < _Levels2.default.length) {
                     message = 'Level Completed!';
                     callback = this.game;
                     duration = 2000;
@@ -528,6 +571,11 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'clearEventListeners',
+
+
+        /**
+         * Clean game event listeners.
+         */
         value: function clearEventListeners() {
             this.canvas.removeEventListener('click', this.onClick, false);
             this.canvas.removeEventListener('contextmenu', this.onContextMenu, false);
@@ -537,25 +585,54 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'onMouseMove',
+
+
+        /**
+         * On mouse move event handler.
+         * @param event Event object.
+         */
         value: function onMouseMove(event) {
-            this.guard.x = (e.pageX - this.canvas.offsetLeft - 15) * _Constants.SCALE;
-            this.guard.y = (e.pageY - this.canvas.offsetTop - 15) * _Constants.SCALE;
+            this.guard.x = (event.pageX - this.canvas.offsetLeft - 15) * _Constants.SCALE;
+            this.guard.y = (event.pageY - this.canvas.offsetTop - 15) * _Constants.SCALE;
         }
     }, {
         key: 'onMouseOut',
+
+
+        /**
+         * On mouse out event handler.
+         * @param event Event object.
+         */
         value: function onMouseOut(event) {
             this.onPause = true;
         }
     }, {
         key: 'onClick',
+
+
+        /**
+         * On click event handler.
+         * @param event Event object.
+         */
         value: function onClick(event) {
-            if (this.onGame && !this.onPause) this.bombDefuse(); // *** must be executed before the next command!
-            if (!this.onGame && !this.onPause) this.game();
+            if (this.onGame && !this.onPause) {
+                this.defuseBomb(); // must be executed before the next command!
+            }
+
+            if (!this.onGame && !this.onPause) {
+                this.game();
+            }
         }
     }, {
         key: 'onKeyUp',
+
+
+        /**
+         * On key up event handler.
+         * @param event Event object.
+         */
         value: function onKeyUp(event) {
-            if (e.keyCode == _Constants.KEY_ESCAPE && !this.onPause) {
+            if (event.keyCode == _Constants.KEY_ESCAPE && !this.onPause) {
                 this.onGame = false;
                 this.onPause = false;
                 // reset stuff
@@ -567,11 +644,30 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'onContextMenu',
+
+
+        /**
+         * On context menu pop up event handler.
+         * @param event Event object.
+         * @return {boolean} Returns false in order to disable the event.
+         */
         value: function onContextMenu(event) {
-            if (this.onGame && !this.onPause) this.onPause = true;else if (this.onGame && this.onPause) this.onPause = false;
-            e.preventDefault();
+            if (this.onGame && !this.onPause) {
+                this.onPause = true;
+            } else if (this.onGame && this.onPause) {
+                this.onPause = false;
+            }
+            event.preventDefault();
             return false;
         }
+
+        /**
+         * Get date difference.
+         * @param {Date} date1 First date object.
+         * @param {Date} date2 Second date object.
+         * @return {Object} Returns the date difference values.
+         */
+
     }, {
         key: 'datediff',
         value: function datediff(date1, date2) {
@@ -589,12 +685,6 @@ var SpaceGuard = exports.SpaceGuard = function () {
         key: 'collides',
 
 
-        /**
-         * Check collision between objects.
-         * @param {object} obj1{x, y, width, height}
-         * @param {object} obj2{x, y, width, height}
-         * @returns {bool}
-         */
         /**
          * Check collision between objects.
          * @param {object} obj1{x, y, width, height}
@@ -626,10 +716,16 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'drawStats',
+
+
+        /**
+         * Draw game stats.
+         * @param {boolean} onPause whether the game is on pause mode.
+         */
         value: function drawStats(onPause) {
             var currDate = !onPause ? new Date() : this.lastUpdateTime;
             var time = this.datediff(currDate, this.levelStartTime);
-            var diff = new Date(GameLevels[this.level].time * 60 * 1000 - time.ms);
+            var diff = new Date(_Levels2.default[this.level].time * 60 * 1000 - time.ms);
             var minutes = diff.getMinutes() < 10 ? '0' + diff.getMinutes() : diff.getMinutes();
             var seconds = diff.getSeconds() < 10 ? '0' + diff.getSeconds() : diff.getSeconds();
 
@@ -666,6 +762,15 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'getBarColor',
+
+
+        /**
+         * Calculate the status bar colors.
+         * @param {number} value Status bar value.
+         * @param {boolean} onPause Whether the game is on pause mode.
+         * @param {number} opaque Opacity levels.
+         * @return {string} Returns the color value.
+         */
         value: function getBarColor(value, onPause, opaque) {
             var color = void 0;
 
@@ -677,14 +782,13 @@ var SpaceGuard = exports.SpaceGuard = function () {
             return color;
         }
     }, {
-        key: 'bombDefuse',
+        key: 'defuseBomb',
 
 
         /**
-         * The guard is able to defuse nearby bomb, but this will also
-         * destroy any nearby objects.
+         * The guard is able to defuse nearby bomb, but this will also destroy any nearby objects.
          */
-        value: function bombDefuse() {
+        value: function defuseBomb() {
             var _this5 = this;
 
             if (this.onDefuse) return false;
@@ -712,9 +816,9 @@ var SpaceGuard = exports.SpaceGuard = function () {
 
         /**
          * Display splash screen with a custom message.
-         * @param  {string}   text     The message to be displayed on the splash screen.
-         * @param  {int}   duration The ammount of time that the splash screen will remain on canvas.
-         * @param  {function} callback This method will be called after the splash is finished.
+         * @param {string} text The message to be displayed on the splash screen.
+         * @param {int} duration The amount of time that the splash screen will remain on canvas.
+         * @param {function} callback This method will be called after the splash is finished.
          */
         value: function splash(text, duration, callback) {
             var _this6 = this;
@@ -743,16 +847,20 @@ var SpaceGuard = exports.SpaceGuard = function () {
 
 
         /**
-         * Converts the creation rate from percentage into a value that will be
-         * compared with the random value.
-         * @param  {int} rate Creation rate in percentage.
-         * @return {int} Returns the number that is going to be compared with the random value.
+         * Convert the creation rate from percentage into a value that will be compared with the random value.
+         * @param {number} rate Creation rate in percentage.
+         * @return {number} Returns the number that is going to be compared with the random value.
          */
         value: function convertRate(rate) {
             return 1000 - rate * 10;
         }
     }, {
         key: 'drawCredits',
+
+
+        /**
+         * Draw credits on screen.
+         */
         value: function drawCredits() {
             this.ctx.fillStyle = '#515151';
             this.ctx.font = '8pt Arial';
@@ -763,7 +871,15 @@ var SpaceGuard = exports.SpaceGuard = function () {
         key: 'wrapText',
 
 
-        // @link http://www.html5canvastutorials.com/tutorials/html5-canvas-wrap-text-tutorial/
+        /**
+         * Wrap text into the provided width.
+         * {@link http://www.html5canvastutorials.com/tutorials/html5-canvas-wrap-text-tutorial}
+         * @param {string} text Text to be wrapped.
+         * @param {number} x Left position.
+         * @param {number} y Top position.
+         * @param {number} maxWidth Max width of the text.
+         * @param {number} lineHeight Line height value.
+         */
         value: function wrapText(text, x, y, maxWidth, lineHeight) {
             var words = text.split(' ');
             var line = '';
@@ -784,11 +900,16 @@ var SpaceGuard = exports.SpaceGuard = function () {
         }
     }, {
         key: 'drawIntroScreen',
+
+
+        /**
+         * Draw intro screen.
+         */
         value: function drawIntroScreen() {
-            // splash
+            // Splash
             this.ctx.drawImage(this.sprites.introScreen, 1, 1);
 
-            // text
+            // Text
             this.ctx.font = (30 * _Constants.SCALE).toString() + 'pt helvetica';
             this.ctx.textAlign = 'center';
             this.ctx.fillStyle = '#fff';
@@ -796,13 +917,13 @@ var SpaceGuard = exports.SpaceGuard = function () {
             this.ctx.font = (20 * _Constants.SCALE).toString() + 'pt helvetica';
             this.ctx.fillText('Click to Start', this.cx, this.cy + 250 * _Constants.SCALE);
             this.canvas.style['cursor'] = 'default';
-
-            return this;
         }
     }]);
 
     return SpaceGuard;
 }();
+
+exports.default = SpaceGuard;
 
 /***/ }),
 /* 3 */
@@ -841,21 +962,18 @@ var OBJ_TYPE_SSHIELD = exports.OBJ_TYPE_SSHIELD = 'sshield';
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-/**
- * (OBJECT) Handles the comets animation.
- * @param {object} sg SpaceGuard game instance.
- */
-var Comet = exports.Comet = function Comet(sg) {
-    this.sg = sg;
+
+exports.default = function (spaceguard) {
+    this.sg = spaceguard;
     this.x;
     this.y;
     this.a; // extra direction handling
-    this.width = 60 * SCALE;
-    this.height = 60 * SCALE;
-    this.speedX = GameLevels[this.sg.level].comet.speed * Math.random();
-    this.speedY = GameLevels[this.sg.level].comet.speed * Math.random();
-    this.damage = Math.floor(Math.random() * GameLevels[this.sg.level].comet.damage);
-    this.dfs = 30 * SCALE; // initial distance from scene
+    this.width = 60 * _Constants.SCALE;
+    this.height = 60 * _Constants.SCALE;
+    this.speedX = _Levels2.default[this.sg.level].comet.speed * Math.random();
+    this.speedY = _Levels2.default[this.sg.level].comet.speed * Math.random();
+    this.damage = Math.floor(Math.random() * _Levels2.default[this.sg.level].comet.damage);
+    this.dfs = 30 * _Constants.SCALE; // initial distance from scene
     this.destroyed = false;
 
     this.position = function () {
@@ -865,27 +983,27 @@ var Comet = exports.Comet = function Comet(sg) {
             case 1:
                 // top
                 this.y = -1 * this.dfs;
-                this.x = Math.ceil(Math.random() * sg.canvas.width);
+                this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
                 if (this.x > this.sg.canvas.width / 2) this.speedX = -1 * this.speedX;
                 this.speedY = -1 * this.speedY;
                 break;
             case 2:
                 // right
-                this.x = sg.canvas.width + this.dfs;
-                this.y = Math.ceil(Math.random() * sg.canvas.height);
+                this.x = spaceguard.canvas.width + this.dfs;
+                this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
                 if (this.y > this.sg.canvas.height / 2) this.speedY = -1 * this.speedY;
                 this.speedX = -1 * this.speedX;
                 break;
             case 3:
                 // bottom
-                this.y = sg.canvas.height + this.dfs;
-                this.x = Math.ceil(Math.random() * sg.canvas.width);
+                this.y = spaceguard.canvas.height + this.dfs;
+                this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
                 if (this.x > this.sg.canvas.width / 2) this.speedX = -1 * this.speedX;
                 break;
             case 4:
                 // left
                 this.x = -1 * this.dfs;
-                this.y = Math.ceil(Math.random() * sg.canvas.height);
+                this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
                 if (this.y > this.sg.canvas.height / 2) this.speedY = -1 * this.speedY;
         }
 
@@ -913,6 +1031,21 @@ var Comet = exports.Comet = function Comet(sg) {
     };
 };
 
+var _Constants = __webpack_require__(3);
+
+var _Levels = __webpack_require__(10);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+;
+
+/**
+ * Handles the comets animation.
+ * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ */
+
 /***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -923,18 +1056,15 @@ var Comet = exports.Comet = function Comet(sg) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-/**
- * (RANDOM OBJECT) Bomb that explodes when the guard collides with it.
- * @param {object} sg SpaceGuard game instance.
- */
-var Bomb = exports.Bomb = function Bomb(sg) {
-    this.sg = sg;
+
+exports.default = function (spaceguard) {
+    this.sg = spaceguard;
     this.type = OBJ_TYPE_BOMB;
     this.color = '#6C17AD';
-    this.x = Math.round(Math.random() * this.sg.canvas.width * SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * SCALE);
-    this.width = 30 * SCALE;
-    this.height = 30 * SCALE;
+    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
+    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
+    this.width = 30 * _Constants.SCALE;
+    this.height = 30 * _Constants.SCALE;
     this.damage = 20; // base damage value
     this.value = Math.ceil(Math.random() * this.damage) + this.damage;
 
@@ -943,6 +1073,15 @@ var Bomb = exports.Bomb = function Bomb(sg) {
         this.destroyed = true;
     };
 };
+
+var _Constants = __webpack_require__(3);
+
+;
+
+/**
+ * Bomb that explodes when the guard collides with it (RANDOM OBJECT).
+ * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ */
 
 /***/ }),
 /* 6 */
@@ -954,28 +1093,40 @@ var Bomb = exports.Bomb = function Bomb(sg) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-/**
- * (RANDOM OBJECT) Starship shield power up.
- * @param {object} sg SpaceGuard game instance.
- */
-var StarshipShield = exports.StarshipShield = function StarshipShield(sg) {
-    this.sg = sg;
+
+exports.default = function (spaceguard) {
+    this.sg = spaceguard;
     this.type = OBJ_TYPE_SSHIELD;
     this.color = '#36EB57';
-    this.x = Math.round(Math.random() * this.sg.canvas.width * SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * SCALE);
-    this.width = 30 * SCALE;
-    this.height = 30 * SCALE;
+    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
+    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
+    this.width = 30 * _Constants.SCALE;
+    this.height = 30 * _Constants.SCALE;
     this.shield = 10; // base power up value
     this.value = Math.round(Math.random() * this.shield) + this.shield;
 
     this.trigger = function () {
         this.sg.starship.shield += this.value;
-        if (this.sg.starship.shield > GameLevels[this.sg.level].starship.shield) this.sg.starship.shield = GameLevels[this.sg.level].starship.shield;
+        if (this.sg.starship.shield > _Levels2.default[this.sg.level].starship.shield) this.sg.starship.shield = _Levels2.default[this.sg.level].starship.shield;
         this.sg.score += SHIELD_SCORE;
         this.destroyed = true;
     };
 };
+
+var _Constants = __webpack_require__(3);
+
+var _Levels = __webpack_require__(10);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+;
+
+/**
+ * Starship shield power up.
+ * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ */
 
 /***/ }),
 /* 7 */
@@ -995,7 +1146,7 @@ Object.defineProperty(exports, "__esModule", {
  *
  * @type {Array}
  */
-var GameSprites = exports.GameSprites = [{
+exports.default = [{
     id: 'guard',
     src: 'images/guard.png'
 }, {
@@ -1028,36 +1179,325 @@ var GameSprites = exports.GameSprites = [{
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-/**
- * (RANDOM OBJECT) Guard shield power up.
- * @param {object} sg SpaceGuard game instance.
- */
-var GuardShield = exports.GuardShield = function GuardShield(sg) {
-    this.sg = sg;
+
+exports.default = function (spaceguard) {
+    this.sg = spaceguard;
     this.type = OBJ_TYPE_GSHIELD;
     this.color = '#36BDEB';
     this.destroyed = false;
-    this.x = Math.round(Math.random() * this.sg.canvas.width * SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * SCALE);
-    this.width = 30 * SCALE;
-    this.height = 30 * SCALE;
+    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
+    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
+    this.width = 30 * _Constants.SCALE;
+    this.height = 30 * _Constants.SCALE;
     this.shield = 10; // base power up value
     this.value = Math.round(Math.random() * this.shield) + this.shield;
 
     this.trigger = function () {
         this.sg.guard.shield += this.value;
-        if (this.sg.guard.shield > GameLevels[this.sg.level].guard.shield) this.sg.guard.shield = GameLevels[this.sg.level].guard.shield;
+        if (this.sg.guard.shield > _Levels2.default[this.sg.level].guard.shield) this.sg.guard.shield = _Levels2.default[this.sg.level].guard.shield;
         this.sg.score += SHIELD_SCORE;
         this.destroyed = true;
     };
 };
 
+var _Constants = __webpack_require__(3);
+
+var _Levels = __webpack_require__(10);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+;
+
+/**
+ * Guard shield power up.
+ * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ */
+
 /***/ }),
-/* 9 */
+/* 9 */,
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _Constants = __webpack_require__(3);
+
+/**
+ * Game levels definition.
+ *
+ * Adjusts the way SpaceGuard is going to handle each level. The game should become more and more hard to
+ * play as the user progress advances.
+ *
+ * @type {Object[]}
+ */
+exports.default = [
+// lvl 1
+{
+    time: 1, // minutes
+    background: 'img-path', // image element id
+    guard: {
+        shield: 100, // % percent
+        defuseRadius: 80
+    },
+    starship: {
+        shield: 100 // % percent
+    },
+    comet: {
+        speed: 7 * _Constants.SCALE, // points
+        damage: 10, // points
+        creationRate: 15 // % percent
+    },
+    bomb: {
+        creationRate: 35 // % percent
+    },
+    guardShield: {
+        creationRate: 20 // % percent
+    },
+    starshipShield: {
+        creationRate: 10 // % percent
+    }
+},
+// lvl 2
+{
+    time: 2,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 85
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 13,
+        creationRate: 20 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 40
+    },
+    guardShield: {
+        creationRate: 20
+    },
+    starshipShield: {
+        creationRate: 12
+    }
+},
+// lvl 3
+{
+    time: 2,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 85
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 13,
+        creationRate: 25 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 40
+    },
+    guardShield: {
+        creationRate: 22
+    },
+    starshipShield: {
+        creationRate: 15
+    }
+},
+// lvl 4
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 90
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 35 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 45
+    },
+    guardShield: {
+        creationRate: 30
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 5
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 90
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 6
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 7
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 8
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 9
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 100
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 10
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 110
+    },
+    starship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    starshipShield: {
+        creationRate: 25
+    }
+}];
 
 /***/ })
 /******/ ]);
