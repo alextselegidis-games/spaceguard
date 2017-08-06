@@ -38,8 +38,8 @@ export default [
         src: 'images/sshield.png'
     },
     {
-        id: 'starship',
-        src: 'images/starship.png'
+        id: 'spaceship',
+        src: 'images/spaceship.png'
     },
     {
         id: 'introScreen',

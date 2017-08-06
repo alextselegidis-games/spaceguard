@@ -12,7 +12,9 @@ import {SCALE, SHIELD_SCORE, OBJ_TYPE_SSHIELD} from './Constants';
 import GameLevels from './Levels';
 
 /**
- * Starship shield power up.
+ * Spaceship Shield Class
+ *
+ * Power up that increases the spaceship shields.
  */
 export default class Spaceguard {
     /**
@@ -33,12 +35,12 @@ export default class Spaceguard {
     }
 
     /**
-     * Trigger Starship Shield object.
+     * Trigger Spaceship Shield object.
      */
     trigger() {
-        this.spaceguard.starship.shield += this.value;
-        if (this.spaceguard.starship.shield > GameLevels[this.spaceguard.level].starship.shield){
-            this.spaceguard.starship.shield = GameLevels[this.spaceguard.level].starship.shield;
+        this.spaceguard.spaceship.shield += this.value;
+        if (this.spaceguard.spaceship.shield > GameLevels[this.spaceguard.level].spaceship.shield){
+            this.spaceguard.spaceship.shield = GameLevels[this.spaceguard.level].spaceship.shield;
         }
         this.spaceguard.score += SHIELD_SCORE;
         this.destroyed = true;

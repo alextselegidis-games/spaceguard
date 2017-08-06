@@ -12,7 +12,9 @@ import {SCALE} from './Constants';
 import GameLevels from './Levels';
 
 /**
- * Space comet class.
+ * Comet Class
+ *
+ * Space objects that involve damage to the guard and the spaceship.
  */
 export default class Comet {
     /**

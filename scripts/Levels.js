@@ -27,7 +27,7 @@ export default [
             shield: 100, // % percent
             defuseRadius: 80
         },
-        starship: {
+        spaceship: {
             shield: 100 // % percent
         },
         comet: {
@@ -41,7 +41,7 @@ export default [
         guardShield: {
             creationRate: 20 // % percent
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 10 // % percent
         }
     },
@@ -53,7 +53,7 @@ export default [
             shield: 100,
             defuseRadius: 85
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -67,7 +67,7 @@ export default [
         guardShield: {
             creationRate: 20
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 12
         }
     },
@@ -79,7 +79,7 @@ export default [
             shield: 100,
             defuseRadius: 85
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -93,7 +93,7 @@ export default [
         guardShield: {
             creationRate: 22
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 15
         }
     },
@@ -105,7 +105,7 @@ export default [
             shield: 100,
             defuseRadius: 90
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -119,7 +119,7 @@ export default [
         guardShield: {
             creationRate: 30
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -131,7 +131,7 @@ export default [
             shield: 100,
             defuseRadius: 90
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -145,7 +145,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -157,7 +157,7 @@ export default [
             shield: 100,
             defuseRadius: 95
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -171,7 +171,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -183,7 +183,7 @@ export default [
             shield: 100,
             defuseRadius: 95
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -197,7 +197,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -209,7 +209,7 @@ export default [
             shield: 100,
             defuseRadius: 95
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -223,7 +223,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -235,7 +235,7 @@ export default [
             shield: 100,
             defuseRadius: 100
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -249,7 +249,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     },
@@ -261,7 +261,7 @@ export default [
             shield: 100,
             defuseRadius: 110
         },
-        starship: {
+        spaceship: {
             shield: 100
         },
         comet: {
@@ -275,7 +275,7 @@ export default [
         guardShield: {
             creationRate: 35
         },
-        starshipShield: {
+        spaceshipShield: {
             creationRate: 25
         }
     }

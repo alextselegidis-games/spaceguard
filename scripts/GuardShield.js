@@ -9,10 +9,12 @@
  * ---------------------------------------------------------------------------- */
 
 import {SCALE, SHIELD_SCORE, OBJ_TYPE_GSHIELD} from './Constants';
-import GameLevels from './Levels';
+import Levels from './Levels';
 
 /**
- * Guard shield power up.
+ * Guard Shield Class
+ *
+ * Power up that increases the guard shields.
  */
 export default class GuardShield {
     /**
@@ -38,8 +40,8 @@ export default class GuardShield {
      */
     trigger() {
         this.spaceguard.guard.shield += this.value;
-        if (this.spaceguard.guard.shield > GameLevels[this.spaceguard.level].guard.shield)
-            this.spaceguard.guard.shield = GameLevels[this.spaceguard.level].guard.shield;
+        if (this.spaceguard.guard.shield > Levels[this.spaceguard.level].guard.shield)
+            this.spaceguard.guard.shield = Levels[this.spaceguard.level].guard.shield;
         this.spaceguard.score += SHIELD_SCORE;
         this.destroyed = true;
     }

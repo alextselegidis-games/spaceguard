@@ -11,13 +11,15 @@
 import {SCALE, OBJ_TYPE_BOMB} from './Constants';
 
 /**
- * Bomb that explodes when the guard collides with it.
+ * Bomb Class
+ *
+ * Space object that explodes when the guard collides with it.
  */
 export default class Bomb {
     /**
      * Class constructor.
      *
-     * @param {Spaceguard} Spaceguard game instance.
+     * @param {Spaceguard} spaceguard Spaceguard game instance.
      */
     constructor(spaceguard) {
         this.spaceguard = spaceguard;
@@ -32,7 +34,7 @@ export default class Bomb {
     }
 
     /**
-     * Trigger Bomb object.
+     * Trigger bomb object.
      */
     trigger() {
         this.spaceguard.guard.shield -= this.value;

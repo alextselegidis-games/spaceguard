@@ -26,7 +26,7 @@ import GameSprites from './GameSprites';
 import GameLevels from './Levels';
 import Comet from './Comet';
 import Bomb from './Bomb';
-import StarshipShield from './StarshipShield';
+import SpaceshipShield from './SpaceshipShield';
 import GuardShield from './GuardShield';
 
 /**
@@ -51,7 +51,7 @@ export default class Spaceguard {
             shield: 100,
             defuseRadius: 50
         };
-        this.starship = {
+        this.spaceship = {
             x: undefined,
             y: undefined,
             width: 135 * SCALE,
@@ -157,10 +157,10 @@ export default class Spaceguard {
         this.guard.shield = GameLevels[this.level].guard.shield;
         this.guard.defuseRadius = GameLevels[this.level].guard.defuseRadius;
         this.guard.img = document.getElementById('guard');
-        this.starship.x = this.cx - (this.starship.width / 2);
-        this.starship.y = this.cy - (this.starship.height / 2);
-        this.starship.shield = GameLevels[this.level].starship.shield;
-        this.starship.img = document.getElementById('starship');
+        this.spaceship.x = this.cx - (this.spaceship.width / 2);
+        this.spaceship.y = this.cy - (this.spaceship.height / 2);
+        this.spaceship.shield = GameLevels[this.level].spaceship.shield;
+        this.spaceship.img = document.getElementById('spaceship');
 
         // Create comets.
         this.comets = [];
@@ -190,8 +190,8 @@ export default class Spaceguard {
         // Clear stuff
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Starship
-        this.ctx.drawImage(this.sprites.starship, this.starship.x * SCALE, this.starship.y * SCALE);
+        // Spaceship
+        this.ctx.drawImage(this.sprites.spaceship, this.spaceship.x * SCALE, this.spaceship.y * SCALE);
     };
 
     /**
@@ -218,9 +218,9 @@ export default class Spaceguard {
                 this.score += COMET_SCORE; // fixed value  
             }
 
-            if (this.collides(comet, this.starship)) {
+            if (this.collides(comet, this.spaceship)) {
                 comet.destroyed = true;
-                this.starship.shield -= comet.damage;
+                this.spaceship.shield -= comet.damage;
             }
 
             if (comet.destroyed) { // remove it from the array
@@ -270,10 +270,10 @@ export default class Spaceguard {
             creation = true;
         }
 
-        // Create Starship Shield
+        // Create Spaceship Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= this.convertRate(GameLevels[this.level].starshipShield.creationRate) && roll && !creation) {
-            this.randomObjects.push(new StarshipShield(this));
+        if (rand >= this.convertRate(GameLevels[this.level].spaceshipShield.creationRate) && roll && !creation) {
+            this.randomObjects.push(new SpaceshipShield(this));
             creation = true;
         }
 
@@ -355,13 +355,13 @@ export default class Spaceguard {
             this.lastUpdateTime = new Date();
         }
 
-        if (this.guard.shield <= 0 || this.starship.shield <= 0) {
+        if (this.guard.shield <= 0 || this.spaceship.shield <= 0) {
             // reset game - game over
             this.onGame = false;
             this.onPause = false;
             //this.level = 0; 
             this.clearEventListeners();
-            message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' Score ' + this.score + ' (-50%)';
+            message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Spaceship Destroyed!') + ' Score ' + this.score + ' (-50%)';
             this.splash(message, 2000, this.load);
             this.score = (this.score > 0) ? Math.round(this.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
             return;
@@ -534,15 +534,15 @@ export default class Spaceguard {
         this.ctx.textAlign = 'right';
         this.ctx.lineWidth = '1';
         let gColor = this.getBarColor(this.guard.shield, onPause);
-        let sColor = this.getBarColor(this.starship.shield, onPause);
+        let sColor = this.getBarColor(this.spaceship.shield, onPause);
 
         this.ctx.fillStyle = gColor;
         this.ctx.fillText('Guard ' + this.guard.shield + '%', (this.canvas.width - 20) * SCALE, 30 * SCALE); // guard
         this.ctx.fillStyle = sColor;
-        this.ctx.fillText('Starship ' + this.starship.shield + '%', (this.canvas.width - 20) * SCALE, 80 * SCALE); // starship
+        this.ctx.fillText('Spaceship ' + this.spaceship.shield + '%', (this.canvas.width - 20) * SCALE, 80 * SCALE); // spaceship
 
         gColor = this.getBarColor(this.guard.shield, onPause, true);
-        sColor = this.getBarColor(this.starship.shield, onPause, true);
+        sColor = this.getBarColor(this.spaceship.shield, onPause, true);
 
         this.ctx.strokeStyle = gColor;
         this.ctx.strokeRect((this.canvas.width - 152) * SCALE, 40, 130, 15);
@@ -552,7 +552,7 @@ export default class Spaceguard {
         this.ctx.strokeStyle = sColor;
         this.ctx.strokeRect((this.canvas.width - 152) * SCALE, 90, 130, 15);
         this.ctx.fillStyle = sColor;
-        this.ctx.fillRect((this.canvas.width - 152) * SCALE, 90, this.starship.shield / 100 * 130, 15);
+        this.ctx.fillRect((this.canvas.width - 152) * SCALE, 90, this.spaceship.shield / 100 * 130, 15);
     };
 
     /**
