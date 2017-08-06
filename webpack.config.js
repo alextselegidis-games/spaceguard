@@ -1,11 +1,11 @@
 var path = require('path');
-var webpack = require('webpack');
 
 module.exports = {
+    devtool: 'source-map',
     entry: './scripts/Init.js',
     output: {
         path: path.resolve(__dirname, 'bundle'),
-        filename: 'spaceguard.bundle.js'
+        filename: 'spaceguard.js'
     },
     module: {
         loaders: [
@@ -20,6 +20,5 @@ module.exports = {
     },
     stats: {
         colors: true
-    },
-    devtool: 'source-map'
+    }
 };
