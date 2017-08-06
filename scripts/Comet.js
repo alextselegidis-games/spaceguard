@@ -2,23 +2,32 @@ import {SCALE} from './Constants';
 import GameLevels from './Levels';
 
 /**
- * Handles the comets animation.
- * @param {Spaceguard} spaceguard Spaceguard game instance.
+ * Space comet class.
  */
-export default function (spaceguard) {
-    this.sg = spaceguard;
-    this.x;
-    this.y;
-    this.a; // extra direction handling
-    this.width = 60 * SCALE;
-    this.height = 60 * SCALE;
-    this.speedX = GameLevels[this.sg.level].comet.speed * Math.random();
-    this.speedY = GameLevels[this.sg.level].comet.speed * Math.random();
-    this.damage = Math.floor(Math.random() * GameLevels[this.sg.level].comet.damage);
-    this.dfs = 30 * SCALE; // initial distance from scene
-    this.destroyed = false;
+export default class Comet {
+    /**
+     * Class constructor.
+     *
+     * @param {Spaceguard} spaceguard Spaceguard game instance.
+     */
+    constructor(spaceguard) {
+        this.sg = spaceguard;
+        this.x;
+        this.y;
+        this.a; // extra direction handling
+        this.width = 60 * SCALE;
+        this.height = 60 * SCALE;
+        this.speedX = GameLevels[this.sg.level].comet.speed * Math.random();
+        this.speedY = GameLevels[this.sg.level].comet.speed * Math.random();
+        this.damage = Math.floor(Math.random() * GameLevels[this.sg.level].comet.damage);
+        this.dfs = 30 * SCALE; // initial distance from scene
+        this.destroyed = false;
+    }
 
-    this.position = function () {
+    /**
+     * Update comet position on screen.
+     */
+    position() {
         let canvasSide = Math.ceil(Math.random() * 4);
 
         switch (canvasSide) {
@@ -46,26 +55,33 @@ export default function (spaceguard) {
         }
 
         this.a = Math.random() * 1;
-    };
+    }
 
-    this.draw = function () {
-        // move
+    /**
+     * Draw comet object on screen.
+     */
+    draw() {
+        // Move
         this.x += this.a * Math.ceil(Math.random() * this.speedX) + Math.round(this.speedX / 2);
         this.y += this.a * Math.ceil(Math.random() * this.speedY) + Math.round(this.speedY / 2);
 
-        // check if comet is out of map
+        // Check if comet is out of map
         this.isOutOfMap();
 
-        // draw
+        // Draw
         this.sg.ctx.drawImage(this.sg.sprites.comet, this.x, this.y);
-    };
+    }
 
-    this.isOutOfMap = function () {
-        // if the comet is too far from the map frame it means that
-        // it needs to be destroyed cause it will no longer play any
-        // part on the game
-        let dist = Math.abs(Math.sqrt(Math.pow(this.x - this.sg.cx, 2) + Math.pow(this.y - this.sg.cy, 2)));
-        if (dist > (this.sg.canvas.width))
+    /**
+     * Check whether the comet has gone out of the map.
+     */
+    isOutOfMap() {
+        // If the comet is too far from the map frame it means that it needs to be destroyed cause it will
+        // no longer play any part on the game.
+        const dist = Math.abs(Math.sqrt(Math.pow(this.x - this.sg.cx, 2) + Math.pow(this.y - this.sg.cy, 2)));
+
+        if (dist > (this.sg.canvas.width)) {
             this.destroyed = true;
-    };
+        }
+    }
 };
