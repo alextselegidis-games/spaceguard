@@ -4,7 +4,7 @@
  * All the game sprites are loaded dynamically by this script. Just
  * add a new item on the array.
  *
- * @type {Array}
+ * @type {Object[]}
  */
 export default [
     {

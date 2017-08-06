@@ -7,7 +7,7 @@ export default class Bomb {
     /**
      * Class constructor.
      *
-     * @param {SpaceGuard} Spaceguard game instance.
+     * @param {Spaceguard} Spaceguard game instance.
      */
     constructor(spaceguard) {
         this.sg = spaceguard;
