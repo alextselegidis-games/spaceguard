@@ -4,7 +4,6 @@ import {
     CANVAS_HEIGHT,
     KEY_ESCAPE,
     COMET_SCORE,
-    SHIELD_SCORE,
     BOMB_SCORE,
     CREATION_BARRIER_STEP,
     OBJ_TYPE_BOMB,
@@ -78,7 +77,7 @@ export default class Spaceguard {
         // load image sprites
         GameSprites.forEach((sprite) => {
             // let sprite = GameSprites[i];
-            let img = document.createElement('img');
+            const img = document.createElement('img');
             img.id = sprite.id;
             img.src = sprite.src;
             img.style.display = 'none';
@@ -153,22 +152,22 @@ export default class Spaceguard {
         this.starship.shield = GameLevels[this.level].starship.shield;
         this.starship.img = document.getElementById('starship');
 
-        // create comets
+        // Create comets.
         this.comets = [];
         for (let i = 0; i < 10; i++) {
             this.comets.push(new Comet(this));
             this.comets[i].position();
         }
 
-        // add event listeners
+        // Add event listeners.
         this.canvas.addEventListener('keyup', this.onKeyUp.bind(this));
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this.canvas.addEventListener('mouseout', this.onMouseOut.bind(this));
         this.canvas.style['cursor'] = 'none';
 
-        // splash screen
+        // Splash screen.
         this.splash('Level ' + (this.level + 1), 1000, () => {
-            requestAnimFrame(this.loop);
+            requestAnimationFrame(this.loop.bind(this));
         });
 
         return this;
@@ -222,7 +221,7 @@ export default class Spaceguard {
 
         // When the level starts there is a creation barrier that will slowly fade.
         let time = this.datediff(new Date(), this.levelStartTime).ms;
-        creationBarrier = (time < CREATION_BARRIER_STEP) ? (CREATION_BARRIER_STEP - time) / 10 : 0;
+        let creationBarrier = (time < CREATION_BARRIER_STEP) ? (CREATION_BARRIER_STEP - time) / 10 : 0;
 
         // When the level is about to end then we need to stop once again the creation of new comets.
         if (time > CREATION_BARRIER_STEP && (GameLevels[this.level].time * 60 * 1000) - time < CREATION_BARRIER_STEP) {
@@ -248,7 +247,7 @@ export default class Spaceguard {
         if (roll) this.lastRollTime = new Date();
 
         // Create Bomb
-        rand = Math.round(Math.random() * 1000) + 1;
+        let rand = Math.round(Math.random() * 1000) + 1;
         if (rand >= this.convertRate(GameLevels[this.level].bomb.creationRate) && roll) {
             this.randomObjects.push(new Bomb(this));
             creation = true;
@@ -315,14 +314,16 @@ export default class Spaceguard {
             this.loop();
             return;
         }
-        requestAnimFrame(this.pause, this.canvas);
+        requestAnimationFrame(this.pause.bind(this), this.canvas);
     };
 
     /**
      * Handles main game loop.
      */
     loop() {
-        let message, callback, duration;
+        let message;
+        let callback;
+        let duration;
 
         if (this.onPause) {
             this.canvas.style['cursor'] = 'default';
@@ -331,8 +332,9 @@ export default class Spaceguard {
             return;
         }
 
-        if (!this.onGame)
+        if (!this.onGame){
             return;
+        }
 
         if (this.datediff(new Date(), this.lastUpdateTime).ms > this.frameUpdateTime) {
             this.drawBackground();
@@ -349,7 +351,7 @@ export default class Spaceguard {
             this.onPause = false;
             //this.level = 0; 
             this.clearEventListeners();
-            message = ((this.guard.shield <= 0) ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' Score ' + this.score + ' (-50%)';
+            message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' Score ' + this.score + ' (-50%)';
             this.splash(message, 2000, this.load);
             this.score = (this.score > 0) ? Math.round(this.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
             return;
@@ -358,7 +360,6 @@ export default class Spaceguard {
         if (this.datediff(new Date(), this.levelStartTime).ms > GameLevels[this.level].time * 60 * 1000) {
             this.onGame = false;
             this.onPause = false;
-
 
             if (this.level < GameLevels.length) {
                 message = 'Level Completed!';
@@ -373,10 +374,11 @@ export default class Spaceguard {
             }
 
             this.splash(message, duration, callback);
+
             return;
         }
 
-        requestAnimFrame(this.loop, this.canvas);
+        requestAnimationFrame(this.loop.bind(this), this.canvas);
     };
 
     /**
@@ -478,7 +480,7 @@ export default class Spaceguard {
      */
     collides(obj1, obj2) {
         let x1, y1, w1, h1; // obj1
-        let ox, oy, ow, oh; // obj2
+        let x2, y2, w2, h2; // obj2
 
         x1 = obj1.x;
         y1 = obj1.y;
@@ -569,18 +571,23 @@ export default class Spaceguard {
      * The guard is able to defuse nearby bomb, but this will also destroy any nearby objects.
      */
     defuseBomb() {
-        if (this.onDefuse) return false;
+        if (this.onDefuse) {
+            return false;
+        }
 
         this.onDefuse = true;
+
         let defuseInterval = setInterval(() => {
             this.currentDefuseRadius++;
             this.randomObjects.forEach((obj) => {
-                distance = Math.sqrt(Math.pow((this.guard.x + 15 - obj.x), 2) + Math.pow((this.guard.y + 15 - obj.y), 2));
+                let distance = Math.sqrt(Math.pow((this.guard.x + 15 - obj.x), 2) + Math.pow((this.guard.y + 15 - obj.y), 2));
+
                 if (distance <= this.currentDefuseRadius) {
                     obj.destroyed = true;
                     if (obj.type == OBJ_TYPE_BOMB) this.score += BOMB_SCORE;
                 }
             });
+
             if (this.currentDefuseRadius == this.guard.defuseRadius) {
                 clearInterval(defuseInterval);
                 this.currentDefuseRadius = 0;
@@ -596,7 +603,8 @@ export default class Spaceguard {
      * @param {function} callback This method will be called after the splash is finished.
      */
     splash(text, duration, callback) {
-        let drawStartTime = new Date();
+        const drawStartTime = new Date();
+
         let drawSplashScreen = () => {
             this.ctx.fillStyle = 'black';
             this.ctx.fillRect(0, 0, this.canvas.width * SCALE, this.canvas.height * SCALE);
@@ -606,12 +614,15 @@ export default class Spaceguard {
             this.ctx.fillText(text, this.canvas.width * SCALE / 2, this.canvas.height * SCALE / 2);
 
             if (this.datediff(new Date(), drawStartTime).ms > duration) { // end of splash screen
-                if (callback) callback();
+                if (callback) {
+                    callback();
+                }
                 return;
             }
 
-            requestAnimFrame(drawSplashScreen, this.canvas);
+            requestAnimationFrame(drawSplashScreen, this.canvas);
         };
+
         drawSplashScreen();
     };
 

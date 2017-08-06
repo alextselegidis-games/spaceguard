@@ -1,4 +1,4 @@
-import {SCALE, SHIELD_SCORE} from './Constants';
+import {SCALE, SHIELD_SCORE, OBJ_TYPE_SSHIELD} from './Constants';
 import GameLevels from './Levels';
 
 /**
@@ -11,11 +11,11 @@ export default class Spaceguard {
      * @param {Spaceguard} spaceguard Spaceguard game instance.
      */
     constructor(spaceguard) {
-        this.sg = spaceguard;
+        this.spaceguard = spaceguard;
         this.type = OBJ_TYPE_SSHIELD;
         this.color = '#36EB57';
-        this.x = Math.round(Math.random() * this.sg.canvas.width * SCALE);
-        this.y = Math.round(Math.random() * this.sg.canvas.height * SCALE);
+        this.x = Math.round(Math.random() * this.spaceguard.canvas.width * SCALE);
+        this.y = Math.round(Math.random() * this.spaceguard.canvas.height * SCALE);
         this.width = 30 * SCALE;
         this.height = 30 * SCALE;
         this.shield = 10; // base power up value
@@ -26,10 +26,11 @@ export default class Spaceguard {
      * Trigger Starship Shield object.
      */
     trigger() {
-        this.sg.starship.shield += this.value;
-        if (this.sg.starship.shield > GameLevels[this.sg.level].starship.shield)
-            this.sg.starship.shield = GameLevels[this.sg.level].starship.shield;
-        this.sg.score += SHIELD_SCORE;
+        this.spaceguard.starship.shield += this.value;
+        if (this.spaceguard.starship.shield > GameLevels[this.spaceguard.level].starship.shield){
+            this.spaceguard.starship.shield = GameLevels[this.spaceguard.level].starship.shield;
+        }
+        this.spaceguard.score += SHIELD_SCORE;
         this.destroyed = true;
     };
 };
