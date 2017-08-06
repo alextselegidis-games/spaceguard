@@ -178,16 +178,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * SpaceGuard
+ * Spaceguard
  *
  * Main game class that handles core operations and loops.
  */
-var SpaceGuard = function () {
+var Spaceguard = function () {
     /**
      * Class constructor.
      */
-    function SpaceGuard() {
-        _classCallCheck(this, SpaceGuard);
+    function Spaceguard() {
+        _classCallCheck(this, Spaceguard);
 
         this.canvas;
         this.ctx;
@@ -232,7 +232,7 @@ var SpaceGuard = function () {
      */
 
 
-    _createClass(SpaceGuard, [{
+    _createClass(Spaceguard, [{
         key: 'initialize',
         value: function initialize(canvasId) {
             var _this = this;
@@ -286,7 +286,7 @@ var SpaceGuard = function () {
                 this.ctx.fillStyle = '#fff';
                 this.ctx.font = '14pt Arial';
                 this.ctx.textAlign = 'center';
-                this.wrapText('Unfortunately SpaceGuard cannot be played on mobile devices. Please try again from a desktop computer.', this.canvas.width / 2 * _Constants.SCALE, this.canvas.height / 2 * _Constants.SCALE, 350 * _Constants.SCALE, 25 * _Constants.SCALE);
+                this.wrapText('Unfortunately Spaceguard cannot be played on mobile devices. Please try again from a desktop computer.', this.canvas.width / 2 * _Constants.SCALE, this.canvas.height / 2 * _Constants.SCALE, 350 * _Constants.SCALE, 25 * _Constants.SCALE);
                 return;
             }
 
@@ -913,17 +913,17 @@ var SpaceGuard = function () {
             this.ctx.font = (30 * _Constants.SCALE).toString() + 'pt helvetica';
             this.ctx.textAlign = 'center';
             this.ctx.fillStyle = '#fff';
-            this.ctx.fillText('SpaceGuard', this.cx, this.cy - 220 * _Constants.SCALE);
+            this.ctx.fillText('Spaceguard', this.cx, this.cy - 220 * _Constants.SCALE);
             this.ctx.font = (20 * _Constants.SCALE).toString() + 'pt helvetica';
             this.ctx.fillText('Click to Start', this.cx, this.cy + 250 * _Constants.SCALE);
             this.canvas.style['cursor'] = 'default';
         }
     }]);
 
-    return SpaceGuard;
+    return Spaceguard;
 }();
 
-exports.default = SpaceGuard;
+exports.default = Spaceguard;
 
 /***/ }),
 /* 3 */
@@ -1043,7 +1043,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
  * Handles the comets animation.
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 
 /***/ }),
@@ -1080,7 +1080,7 @@ var _Constants = __webpack_require__(3);
 
 /**
  * Bomb that explodes when the guard collides with it (RANDOM OBJECT).
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 
 /***/ }),
@@ -1125,7 +1125,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
  * Starship shield power up.
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 
 /***/ }),
@@ -1212,7 +1212,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
  * Guard shield power up.
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 
 /***/ }),
@@ -1232,7 +1232,7 @@ var _Constants = __webpack_require__(3);
 /**
  * Game levels definition.
  *
- * Adjusts the way SpaceGuard is going to handle each level. The game should become more and more hard to
+ * Adjusts the way Spaceguard is going to handle each level. The game should become more and more hard to
  * play as the user progress advances.
  *
  * @type {Object[]}

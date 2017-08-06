@@ -13,19 +13,19 @@ import {
 } from './Constants';
 
 import Environment from './Environment';
+import GameSprites from './GameSprites';
+import GameLevels from './Levels';
 import Comet from './Comet';
 import Bomb from './Bomb';
 import StarshipShield from './StarshipShield';
-import GameSprites from './GameSprites';
 import GuardShield from './GuardShield';
-import GameLevels from './Levels';
 
 /**
- * SpaceGuard
+ * Spaceguard
  *
  * Main game class that handles core operations and loops.
  */
-export default class SpaceGuard {
+export default class Spaceguard {
     /**
      * Class constructor.
      */
@@ -118,7 +118,7 @@ export default class SpaceGuard {
             this.ctx.fillStyle = '#fff';
             this.ctx.font = '14pt Arial';
             this.ctx.textAlign = 'center';
-            this.wrapText('Unfortunately SpaceGuard cannot be played on mobile devices. Please try again from a desktop computer.',
+            this.wrapText('Unfortunately Spaceguard cannot be played on mobile devices. Please try again from a desktop computer.',
                 (this.canvas.width / 2) * SCALE, (this.canvas.height / 2) * SCALE, 350 * SCALE, 25 * SCALE);
             return;
         }
@@ -673,7 +673,7 @@ export default class SpaceGuard {
         this.ctx.font = (30 * SCALE).toString() + 'pt helvetica';
         this.ctx.textAlign = 'center';
         this.ctx.fillStyle = '#fff';
-        this.ctx.fillText('SpaceGuard', this.cx, this.cy - 220 * SCALE);
+        this.ctx.fillText('Spaceguard', this.cx, this.cy - 220 * SCALE);
         this.ctx.font = (20 * SCALE).toString() + 'pt helvetica';
         this.ctx.fillText('Click to Start', this.cx, this.cy + 250 * SCALE);
         this.canvas.style['cursor'] = 'default';

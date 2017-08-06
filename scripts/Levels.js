@@ -3,7 +3,7 @@ import {SCALE} from './Constants';
 /**
  * Game levels definition.
  *
- * Adjusts the way SpaceGuard is going to handle each level. The game should become more and more hard to
+ * Adjusts the way Spaceguard is going to handle each level. The game should become more and more hard to
  * play as the user progress advances.
  *
  * @type {Object[]}

@@ -2,7 +2,7 @@ import {SCALE} from './Constants';
 
 /**
  * Bomb that explodes when the guard collides with it (RANDOM OBJECT).
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 export default function (spaceguard) {
     this.sg = spaceguard;

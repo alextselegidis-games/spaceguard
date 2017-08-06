@@ -3,7 +3,7 @@ import GameLevels from './Levels';
 
 /**
  * Guard shield power up.
- * @param {SpaceGuard} spaceguard SpaceGuard game instance.
+ * @param {Spaceguard} spaceguard Spaceguard game instance.
  */
 export default function (spaceguard) {
     this.sg = spaceguard;
