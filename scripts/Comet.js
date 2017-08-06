@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------------------- */
 
 import {SCALE} from './Constants';
-import GameLevels from './Levels';
+import Levels from './Levels';
 
 /**
  * Comet Class
@@ -29,9 +29,9 @@ export default class Comet {
         this.a; // extra direction handling
         this.width = 60 * SCALE;
         this.height = 60 * SCALE;
-        this.speedX = GameLevels[this.spaceguard.level].comet.speed * Math.random();
-        this.speedY = GameLevels[this.spaceguard.level].comet.speed * Math.random();
-        this.damage = Math.floor(Math.random() * GameLevels[this.spaceguard.level].comet.damage);
+        this.speedX = Levels[this.spaceguard.level].comet.speed * Math.random();
+        this.speedY = Levels[this.spaceguard.level].comet.speed * Math.random();
+        this.damage = Math.floor(Math.random() * Levels[this.spaceguard.level].comet.damage);
         this.dfs = 30 * SCALE; // initial distance from scene
         this.destroyed = false;
     }

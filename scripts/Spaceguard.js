@@ -22,8 +22,8 @@ import {
 } from './Constants';
 
 import Environment from './Environment';
-import GameSprites from './GameSprites';
-import GameLevels from './Levels';
+import Sprites from './Sprites';
+import Levels from './Levels';
 import Comet from './Comet';
 import Bomb from './Bomb';
 import SpaceshipShield from './SpaceshipShield';
@@ -85,8 +85,8 @@ export default class Spaceguard {
         this.ctx = this.canvas.getContext('2d');
 
         // load image sprites
-        GameSprites.forEach((sprite) => {
-            // let sprite = GameSprites[i];
+        Sprites.forEach((sprite) => {
+            // let sprite = Sprites[i];
             const img = document.createElement('img');
             img.id = sprite.id;
             img.src = sprite.src;
@@ -154,12 +154,12 @@ export default class Spaceguard {
         this.randomObjects = [];
         this.guard.x = this.cx;
         this.guard.y = this.cy;
-        this.guard.shield = GameLevels[this.level].guard.shield;
-        this.guard.defuseRadius = GameLevels[this.level].guard.defuseRadius;
+        this.guard.shield = Levels[this.level].guard.shield;
+        this.guard.defuseRadius = Levels[this.level].guard.defuseRadius;
         this.guard.img = document.getElementById('guard');
         this.spaceship.x = this.cx - (this.spaceship.width / 2);
         this.spaceship.y = this.cy - (this.spaceship.height / 2);
-        this.spaceship.shield = GameLevels[this.level].spaceship.shield;
+        this.spaceship.shield = Levels[this.level].spaceship.shield;
         this.spaceship.img = document.getElementById('spaceship');
 
         // Create comets.
@@ -234,14 +234,14 @@ export default class Spaceguard {
         let creationBarrier = (time < CREATION_BARRIER_STEP) ? (CREATION_BARRIER_STEP - time) / 10 : 0;
 
         // When the level is about to end then we need to stop once again the creation of new comets.
-        if (time > CREATION_BARRIER_STEP && (GameLevels[this.level].time * 60 * 1000) - time < CREATION_BARRIER_STEP) {
-            creationBarrier = (CREATION_BARRIER_STEP - ((GameLevels[this.level].time * 60 * 1000) - time)) / 10;
+        if (time > CREATION_BARRIER_STEP && (Levels[this.level].time * 60 * 1000) - time < CREATION_BARRIER_STEP) {
+            creationBarrier = (CREATION_BARRIER_STEP - ((Levels[this.level].time * 60 * 1000) - time)) / 10;
             if (creationBarrier > CREATION_BARRIER_STEP) creationBarrier = CREATION_BARRIER_STEP;
         }
 
         // Create objects
         let rand = Math.ceil(Math.random() * 1000) - creationBarrier;
-        if (rand >= this.convertRate(GameLevels[this.level].comet.creationRate)) {
+        if (rand >= this.convertRate(Levels[this.level].comet.creationRate)) {
             let comet = new Comet(this);
             comet.position();
             this.comets.push(comet);
@@ -258,21 +258,21 @@ export default class Spaceguard {
 
         // Create Bomb
         let rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= this.convertRate(GameLevels[this.level].bomb.creationRate) && roll) {
+        if (rand >= this.convertRate(Levels[this.level].bomb.creationRate) && roll) {
             this.randomObjects.push(new Bomb(this));
             creation = true;
         }
 
         // Create Guard Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= this.convertRate(GameLevels[this.level].guardShield.creationRate) && roll && !creation) {
+        if (rand >= this.convertRate(Levels[this.level].guardShield.creationRate) && roll && !creation) {
             this.randomObjects.push(new GuardShield(this));
             creation = true;
         }
 
         // Create Spaceship Shield
         rand = Math.round(Math.random() * 1000) + 1;
-        if (rand >= this.convertRate(GameLevels[this.level].spaceshipShield.creationRate) && roll && !creation) {
+        if (rand >= this.convertRate(Levels[this.level].spaceshipShield.creationRate) && roll && !creation) {
             this.randomObjects.push(new SpaceshipShield(this));
             creation = true;
         }
@@ -367,11 +367,11 @@ export default class Spaceguard {
             return;
         }
 
-        if (this.datediff(new Date(), this.levelStartTime).ms > GameLevels[this.level].time * 60 * 1000) {
+        if (this.datediff(new Date(), this.levelStartTime).ms > Levels[this.level].time * 60 * 1000) {
             this.onGame = false;
             this.onPause = false;
 
-            if (this.level < GameLevels.length) {
+            if (this.level < Levels.length) {
                 message = 'Level Completed!';
                 callback = this.game;
                 duration = 2000;
@@ -519,7 +519,7 @@ export default class Spaceguard {
     drawStats(onPause) {
         let currDate = (!onPause) ? new Date() : this.lastUpdateTime;
         let time = this.datediff(currDate, this.levelStartTime);
-        let diff = new Date((GameLevels[this.level].time * 60 * 1000) - time.ms);
+        let diff = new Date((Levels[this.level].time * 60 * 1000) - time.ms);
         let minutes = (diff.getMinutes() < 10) ? '0' + diff.getMinutes() : diff.getMinutes();
         let seconds = (diff.getSeconds() < 10) ? '0' + diff.getSeconds() : diff.getSeconds();
 

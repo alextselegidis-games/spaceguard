@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------------------- */
 
 import {SCALE, SHIELD_SCORE, OBJ_TYPE_SSHIELD} from './Constants';
-import GameLevels from './Levels';
+import Levels from './Levels';
 
 /**
  * Spaceship Shield Class
@@ -39,8 +39,8 @@ export default class Spaceguard {
      */
     trigger() {
         this.spaceguard.spaceship.shield += this.value;
-        if (this.spaceguard.spaceship.shield > GameLevels[this.spaceguard.level].spaceship.shield){
-            this.spaceguard.spaceship.shield = GameLevels[this.spaceguard.level].spaceship.shield;
+        if (this.spaceguard.spaceship.shield > Levels[this.spaceguard.level].spaceship.shield){
+            this.spaceguard.spaceship.shield = Levels[this.spaceguard.level].spaceship.shield;
         }
         this.spaceguard.score += SHIELD_SCORE;
         this.destroyed = true;
