@@ -1,95 +1,18 @@
 <!DOCTYPE html>
-<html>
-    <head>
-
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
-        <title>SpaceGuard - Demo Version</title>
-        <style type="text/css">
-            body {
-                background: #1B1B1B;
-                font: 14px Helvetica;
-                color: white;
-                margin: 0 0 30px 0;
-                line-height: 1.3;
-                text-align: justify;
-            }
-
-            #spaceguard {
-                margin: 20px auto;
-                display: block;
-                width: 800px;
-                height: 600px;
-            }
-
-            header {
-                overflow: auto;
-                padding: 5px 20px;
-                width: 800px;
-                margin: 20px auto;
-            }
-
-            .logo {
-                float: left;
-                margin-right: 20px;
-            }
-
-            .title {
-                margin-top: 18px;
-                line-height: 1.1;
-            }
-
-            .title small {
-                font-size: 12px;
-            }
-
-            .content {
-                width: 800px;
-                margin: auto;
-            }
-
-            .content h2 {
-                margin: 30px 0 10px;
-            }
-        </style>
-    </head>
-    <body onload="spaceguard.initialize('spaceguard');">
-        <header>
-            <img class="logo" src="images/spaceguard-logo.png" width="100" height="100" />
-            <h1 class="title">SpaceGuard <br><small>Demo Version</small></h1>
-        </header>
-
-        <canvas id="spaceguard" tabindex="1"></canvas>
-        <script src="bundle/spaceguard.js"></script>
-
-        <div class="content">
-            <h2>About SpaceGuard</h2>
-            <p>
-                SpaceGuard is a simple JavaScript game that I've made during my holidays
-                last Christmas, because I wanted to experiment with the animation capabilities
-                of the new canvas element. This project is not finished yet, but it has reached 
-                a state where one can actually play it. Please read the instructions below.
-            </p>
-
-            <h2>Instructions</h2>
-            <p>
-                You can controll the guard (shield) with the mouse pointer. Random comets will 
-                approach the central starship from various angles of the map. Try to prevent
-                the comets from reaching the starship and make new damages. 
-            </p>
-            <p>
-                The guard can destroy the comets by touching them, but this will inflict some
-                damage to it. Obtain power ups that occur randomly in order to proceed
-                to new levels. You can defuse bombs by clicking (left-mouse-button) nearby a bomb.
-            </p>
-            <p>
-                The purpose of the game is to survive for a specific amount of time. Have fun!
-            </p>
-
-            <h2>Copyright Disclaimer</h2>
-            This demo is using graphic images from various sources of the web (except from the 
-            SpaceGuard logo). I do not claim to own any of them, nor am I making any profit out 
-            of them. 
-        </div>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="Spaceguard is an arcade game entirely written in Vanilla JavaScript.">
+    <meta name="keywords" content="arcade,game,online,vanilla,javascript,demo">
+    <meta name="author" content="Alex Tselegidis <alextselegidis@gmail.com>">
+    <meta name="theme-color" content="#db5945">
+    <title>Spaceguard - Original Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body onload="spaceguard.initialize('spaceguard');">
+<canvas id="spaceguard" tabindex="1"></canvas>
+<script src="bundle/spaceguard.js"></script>
+</body>
 </html>
