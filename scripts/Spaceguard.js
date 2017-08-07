@@ -356,14 +356,14 @@ export default class Spaceguard {
         }
 
         if (this.guard.shield <= 0 || this.spaceship.shield <= 0) {
-            // reset game - game over
+            // Reset game - game over
             this.onGame = false;
             this.onPause = false;
             //this.level = 0; 
             this.clearEventListeners();
             message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Spaceship Destroyed!') + ' Score ' + this.score + ' (-50%)';
             this.splash(message, 2000, this.load);
-            this.score = (this.score > 0) ? Math.round(this.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
+            this.score = this.score > 0 ? Math.round(this.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
             return;
         }
 
@@ -373,12 +373,12 @@ export default class Spaceguard {
 
             if (this.level < Levels.length) {
                 message = 'Level Completed!';
-                callback = this.game;
+                callback = this.game.bind(this);
                 duration = 2000;
                 this.level++;
             } else {
                 message = 'Congrats! You\'ve Completed All Game Levels - Score ' + this.score;
-                callback = this.load;
+                callback = this.load.bind(this);
                 duration = 5000;
                 this.level = 0;
             }
@@ -594,7 +594,9 @@ export default class Spaceguard {
 
                 if (distance <= this.currentDefuseRadius) {
                     obj.destroyed = true;
-                    if (obj.type == OBJ_TYPE_BOMB) this.score += BOMB_SCORE;
+                    if (obj.type == OBJ_TYPE_BOMB) {
+                        this.score += BOMB_SCORE;
+                    }
                 }
             });
 
