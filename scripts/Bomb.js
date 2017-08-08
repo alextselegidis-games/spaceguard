@@ -24,7 +24,6 @@ export default class Bomb {
     constructor(spaceguard) {
         this.spaceguard = spaceguard;
         this.type = OBJ_TYPE_BOMB;
-        this.color = '#6C17AD';
         this.x = Math.round(Math.random() * this.spaceguard.canvas.width * SCALE);
         this.y = Math.round(Math.random() * this.spaceguard.canvas.height * SCALE);
         this.width = 30 * SCALE;

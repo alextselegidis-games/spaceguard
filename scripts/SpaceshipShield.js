@@ -25,7 +25,6 @@ export default class Spaceguard {
     constructor(spaceguard) {
         this.spaceguard = spaceguard;
         this.type = OBJ_TYPE_SSHIELD;
-        this.color = '#36EB57';
         this.x = Math.round(Math.random() * this.spaceguard.canvas.width * SCALE);
         this.y = Math.round(Math.random() * this.spaceguard.canvas.height * SCALE);
         this.width = 30 * SCALE;
@@ -39,7 +38,7 @@ export default class Spaceguard {
      */
     trigger() {
         this.spaceguard.spaceship.shield += this.value;
-        if (this.spaceguard.spaceship.shield > Levels[this.spaceguard.level].spaceship.shield){
+        if (this.spaceguard.spaceship.shield > Levels[this.spaceguard.level].spaceship.shield) {
             this.spaceguard.spaceship.shield = Levels[this.spaceguard.level].spaceship.shield;
         }
         this.spaceguard.score += SHIELD_SCORE;

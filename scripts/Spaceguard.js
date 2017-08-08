@@ -342,7 +342,7 @@ export default class Spaceguard {
             return;
         }
 
-        if (!this.onGame){
+        if (!this.onGame) {
             return;
         }
 
@@ -565,14 +565,15 @@ export default class Spaceguard {
     getBarColor(value, onPause, opaque) {
         let color;
 
-        if (value > 70)
+        if (value > 70) {
             color = (!onPause && opaque) ? 'rgba(92, 255, 201, 0.9)' : '#5CFFC9'; // cyan
-        else if (value > 40)
+        } else if (value > 40) {
             color = (!onPause && opaque) ? 'rgba(92, 255, 143, 0.9)' : '#5CFF8F'; // green
-        else if (value > 15)
+        } else if (value > 15) {
             color = (!onPause && opaque) ? 'rgba(255, 149, 92, 0.9)' : '#FF955C'; // orange
-        else
+        } else {
             color = (!onPause && opaque) ? 'rgba(255, 92, 92, 0.9)' : '#FF5C5C'; // red
+        }
 
         return color;
     };

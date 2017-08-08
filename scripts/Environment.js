@@ -41,6 +41,6 @@ export default {
     },
 
     isMobile: function () {
-        return (this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows());
+        return this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows();
     }
 };

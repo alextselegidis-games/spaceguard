@@ -46,24 +46,32 @@ export default class Comet {
             case 1: // top
                 this.y = -1 * this.dfs;
                 this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
-                if (this.x > this.spaceguard.canvas.width / 2) this.speedX = -1 * this.speedX;
+                if (this.x > this.spaceguard.canvas.width / 2) {
+                    this.speedX = -1 * this.speedX;
+                }
                 this.speedY = -1 * this.speedY;
                 break;
             case 2: // right
                 this.x = spaceguard.canvas.width + this.dfs;
                 this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
-                if (this.y > this.spaceguard.canvas.height / 2) this.speedY = -1 * this.speedY;
+                if (this.y > this.spaceguard.canvas.height / 2) {
+                    this.speedY = -1 * this.speedY;
+                }
                 this.speedX = -1 * this.speedX;
                 break;
             case 3:  // bottom
                 this.y = spaceguard.canvas.height + this.dfs;
                 this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
-                if (this.x > this.spaceguard.canvas.width / 2) this.speedX = -1 * this.speedX;
+                if (this.x > this.spaceguard.canvas.width / 2) {
+                    this.speedX = -1 * this.speedX;
+                }
                 break;
             case 4: // left
                 this.x = -1 * this.dfs;
                 this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
-                if (this.y > this.spaceguard.canvas.height / 2) this.speedY = -1 * this.speedY;
+                if (this.y > this.spaceguard.canvas.height / 2) {
+                    this.speedY = -1 * this.speedY;
+                }
         }
 
         this.a = Math.random() * 1;

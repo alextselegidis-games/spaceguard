@@ -25,7 +25,6 @@ export default class GuardShield {
     constructor(spaceguard) {
         this.spaceguard = spaceguard;
         this.type = OBJ_TYPE_GSHIELD;
-        this.color = '#36BDEB';
         this.destroyed = false;
         this.x = Math.round(Math.random() * this.spaceguard.canvas.width * SCALE);
         this.y = Math.round(Math.random() * this.spaceguard.canvas.height * SCALE);
@@ -40,8 +39,9 @@ export default class GuardShield {
      */
     trigger() {
         this.spaceguard.guard.shield += this.value;
-        if (this.spaceguard.guard.shield > Levels[this.spaceguard.level].guard.shield)
+        if (this.spaceguard.guard.shield > Levels[this.spaceguard.level].guard.shield) {
             this.spaceguard.guard.shield = Levels[this.spaceguard.level].guard.shield;
+        }
         this.spaceguard.score += SHIELD_SCORE;
         this.destroyed = true;
     }
