@@ -655,7 +655,7 @@ export default class Spaceguard {
         this.ctx.fillStyle = '#515151';
         this.ctx.font = '8pt Arial';
         this.ctx.textAlign = 'right';
-        this.ctx.fillText('(C) Copyright ' + (new Date().getFullYear()) + ' - AlexTselegidis.Com', (this.canvas.width - 10) * SCALE, (this.canvas.height - 10) * SCALE)
+        this.ctx.fillText('(C) Copyright ' + (new Date().getFullYear()) + ' - alextselegidis.com', (this.canvas.width - 10) * SCALE, (this.canvas.height - 10) * SCALE)
     };
 
     /**
