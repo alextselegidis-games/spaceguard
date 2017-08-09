@@ -43,6 +43,6 @@ export default [
     },
     {
         id: 'introScreen',
-        src: 'images/introScreen.png'
+        src: 'images/intro-screen.png'
     }
 ];

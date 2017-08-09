@@ -20,7 +20,6 @@ import {
     OBJ_TYPE_GSHIELD,
     OBJ_TYPE_SSHIELD
 } from './Constants';
-
 import Environment from './Environment';
 import Sprites from './Sprites';
 import Levels from './Levels';
@@ -78,7 +77,8 @@ export default class Spaceguard {
      * Initialize game platform.
      *
      * @param {string} canvasId Canvas DOM element.
-     * @returns {object} Returns game instance.
+     *
+     * @return {Object} Returns game instance.
      */
     initialize(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -95,7 +95,7 @@ export default class Spaceguard {
             this.sprites[sprite.id] = img; // store the element handle for later use
 
             // draw main screen when the images are finished loading
-            if (img.id == 'introScreen' && !Environment.isMobile()) {
+            if (img.id === 'introScreen' && !Environment.isMobile()) {
                 img.onload = () => {
                     this.drawIntroScreen();
                 }
@@ -109,7 +109,7 @@ export default class Spaceguard {
     /**
      * Load needed resource files - display initial screen to user.
      *
-     * @returns {object} Returns game instance.
+     * @return {Object} Returns game instance.
      */
     load() {
         // init canvas
@@ -143,7 +143,8 @@ export default class Spaceguard {
 
     /**
      * Execute main game loop.
-     * @returns {object} Returns game instance.
+     *
+     * @return {Object} Returns game instance.
      */
     game() {
         // init game lets
@@ -404,6 +405,7 @@ export default class Spaceguard {
 
     /**
      * On mouse move event handler.
+     *
      * @param event Event object.
      */
     onMouseMove(event) {
@@ -413,6 +415,7 @@ export default class Spaceguard {
 
     /**
      * On mouse out event handler.
+     *
      * @param event Event object.
      */
     onMouseOut(event) {
@@ -421,6 +424,7 @@ export default class Spaceguard {
 
     /**
      * On click event handler.
+     *
      * @param event Event object.
      */
     onClick(event) {
@@ -435,6 +439,7 @@ export default class Spaceguard {
 
     /**
      * On key up event handler.
+     *
      * @param event Event object.
      */
     onKeyUp(event) {
@@ -451,7 +456,9 @@ export default class Spaceguard {
 
     /**
      * On context menu pop up event handler.
-     * @param event Event object.
+     *
+     * @param {Event} event Event object.
+     *
      * @return {boolean} Returns false in order to disable the event.
      */
     onContextMenu(event) {
@@ -466,8 +473,10 @@ export default class Spaceguard {
 
     /**
      * Get date difference.
+     *
      * @param {Date} date1 First date object.
      * @param {Date} date2 Second date object.
+     *
      * @return {Object} Returns the date difference values.
      */
     datediff(date1, date2) {
@@ -484,9 +493,11 @@ export default class Spaceguard {
 
     /**
      * Check collision between objects.
-     * @param {object} obj1{x, y, width, height}
-     * @param {object} obj2{x, y, width, height}
-     * @returns {bool}
+     *
+     * @param {Object} obj1{x, y, width, height} First collision object.
+     * @param {Object} obj2{x, y, width, height} Second collision object.
+     *
+     * @return {boolean} Returns whether the objects collide or not.
      */
     collides(obj1, obj2) {
         let x1, y1, w1, h1; // obj1
@@ -514,6 +525,7 @@ export default class Spaceguard {
 
     /**
      * Draw game stats.
+     *
      * @param {boolean} onPause whether the game is on pause mode.
      */
     drawStats(onPause) {
@@ -557,9 +569,11 @@ export default class Spaceguard {
 
     /**
      * Calculate the status bar colors.
+     *
      * @param {number} value Status bar value.
      * @param {boolean} onPause Whether the game is on pause mode.
      * @param {number} opaque Opacity levels.
+     *
      * @return {string} Returns the color value.
      */
     getBarColor(value, onPause, opaque) {
@@ -611,9 +625,10 @@ export default class Spaceguard {
 
     /**
      * Display splash screen with a custom message.
+     *
      * @param {string} text The message to be displayed on the splash screen.
      * @param {int} duration The amount of time that the splash screen will remain on canvas.
-     * @param {function} callback This method will be called after the splash is finished.
+     * @param {Function} callback This method will be called after the splash is finished.
      */
     splash(text, duration, callback) {
         const drawStartTime = new Date();
@@ -641,7 +656,9 @@ export default class Spaceguard {
 
     /**
      * Convert the creation rate from percentage into a value that will be compared with the random value.
+     *
      * @param {number} rate Creation rate in percentage.
+     *
      * @return {number} Returns the number that is going to be compared with the random value.
      */
     convertRate(rate) {
@@ -655,12 +672,14 @@ export default class Spaceguard {
         this.ctx.fillStyle = '#515151';
         this.ctx.font = '8pt Arial';
         this.ctx.textAlign = 'right';
-        this.ctx.fillText('(C) Copyright ' + (new Date().getFullYear()) + ' - alextselegidis.com', (this.canvas.width - 10) * SCALE, (this.canvas.height - 10) * SCALE)
+        this.ctx.fillText('Copyright © ' + (new Date().getFullYear()) + ' - alextselegidis.com', (this.canvas.width - 10) * SCALE, (this.canvas.height - 10) * SCALE)
     };
 
     /**
      * Wrap text into the provided width.
+     *
      * {@link http://www.html5canvastutorials.com/tutorials/html5-canvas-wrap-text-tutorial}
+     *
      * @param {string} text Text to be wrapped.
      * @param {number} x Left position.
      * @param {number} y Top position.

@@ -20,27 +20,57 @@ export default {
     TOUCH_MOVE_EVENT_NAME: 'mousemove touchmove',
     TOUCH_DOUBLE_TAB_EVENT_NAME: 'dblclick dbltap',
 
-    isAndroid: function () {
+    /**
+     * Check whether user agent is an Android browser.
+     *
+     * @return {string[]|null}
+     */
+    isAndroid() {
         return navigator.userAgent.match(/Android/i);
     },
 
-    isBlackBerry: function () {
+    /**
+     * Check whether user agent is a Black Berry browser.
+     *
+     * @return {string[]|null}
+     */
+    isBlackBerry() {
         return navigator.userAgent.match(/BlackBerry/i);
     },
 
-    isIOS: function () {
+    /**
+     * Check whether user agent is an iOS browser.
+     *
+     * @return {string[]|null}
+     */
+    isIOS() {
         return navigator.userAgent.match(/iPhone|iPad|iPod/i);
     },
 
-    isOpera: function () {
+    /**
+     * Check whether user agent is an Opera browser.
+     *
+     * @return {string[]|null}
+     */
+    isOpera() {
         return navigator.userAgent.match(/Opera Mini/i);
     },
 
-    isWindows: function () {
+    /**
+     * Check whether user agent is a Windows browser.
+     *
+     * @return {string[]|null}
+     */
+    isWindows() {
         return navigator.userAgent.match(/IEMobile/i);
     },
 
-    isMobile: function () {
+    /**
+     * Check whether user agent is a Mobile browser.
+     *
+     * @return {string[]|null}
+     */
+    isMobile() {
         return this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows();
     }
 };
