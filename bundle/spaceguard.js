@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -71,67 +71,33 @@
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
-exports.requestAnimFrame = requestAnimFrame;
-// Cross Browser requestAnimationFrame compatibility.
-// @link http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
-function requestAnimFrame() {
-    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function (callback) {
-        window.setTimeout(callback, 1000 / 60);
-    };
-}
+/* ----------------------------------------------------------------------------
+ * Spaceguard - Arcade Space Game written in JavaScript
+ *
+ * @package     Spaceguard
+ * @author      A.Tselegidis <alextselegidis@gmail.com>
+ * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+ * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+ * @link        http://alextselegidis.com/spaceguard
+ * ---------------------------------------------------------------------------- */
 
-// Check user agent device type.
-// @link http://stackoverflow.com/a/16755700/1718162
-exports.default = {
-    //mobile or desktop compatible event name, to be used with '.on' function
-    TOUCH_DOWN_EVENT_NAME: 'mousedown touchstart',
-    TOUCH_UP_EVENT_NAME: 'mouseup touchend',
-    TOUCH_MOVE_EVENT_NAME: 'mousemove touchmove',
-    TOUCH_DOUBLE_TAB_EVENT_NAME: 'dblclick dbltap',
-
-    isAndroid: function isAndroid() {
-        return navigator.userAgent.match(/Android/i);
-    },
-    isBlackBerry: function isBlackBerry() {
-        return navigator.userAgent.match(/BlackBerry/i);
-    },
-    isIOS: function isIOS() {
-        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
-    },
-    isOpera: function isOpera() {
-        return navigator.userAgent.match(/Opera Mini/i);
-    },
-    isWindows: function isWindows() {
-        return navigator.userAgent.match(/IEMobile/i);
-    },
-    isMobile: function isMobile() {
-        return this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows();
-    }
-};
+// Global Constants
+var SCALE = exports.SCALE = 1;
+var CANVAS_WIDTH = exports.CANVAS_WIDTH = 800; // px
+var CANVAS_HEIGHT = exports.CANVAS_HEIGHT = 600; // px
+var KEY_ESCAPE = exports.KEY_ESCAPE = 27;
+var COMET_SCORE = exports.COMET_SCORE = 5;
+var SHIELD_SCORE = exports.SHIELD_SCORE = 3;
+var BOMB_SCORE = exports.BOMB_SCORE = 5;
+var CREATION_BARRIER_STEP = exports.CREATION_BARRIER_STEP = 5000;
+var OBJ_TYPE_BOMB = exports.OBJ_TYPE_BOMB = 'bomb';
+var OBJ_TYPE_GSHIELD = exports.OBJ_TYPE_GSHIELD = 'gshield';
+var OBJ_TYPE_SSHIELD = exports.OBJ_TYPE_SSHIELD = 'sshield';
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _SpaceGuard = __webpack_require__(2);
-
-var _SpaceGuard2 = _interopRequireDefault(_SpaceGuard);
-
-var _Environment = __webpack_require__(0);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Initialize the game.
-window.requestAnimFrame = _Environment.requestAnimFrame;
-window.spaceguard = new _SpaceGuard2.default();
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -141,37 +107,359 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _Constants = __webpack_require__(0);
 
-var _Constants = __webpack_require__(3);
+/**
+ * Game levels definition.
+ *
+ * Adjusts the way Spaceguard is going to handle each level. The game should become more and more hard to
+ * play as the user progress advances.
+ *
+ * @type {Object[]}
+ */
+exports.default = [
+// lvl 1
+{
+    time: 1, // minutes
+    background: 'img-path', // image element id
+    guard: {
+        shield: 100, // % percent
+        defuseRadius: 80
+    },
+    spaceship: {
+        shield: 100 // % percent
+    },
+    comet: {
+        speed: 7 * _Constants.SCALE, // points
+        damage: 10, // points
+        creationRate: 15 // % percent
+    },
+    bomb: {
+        creationRate: 35 // % percent
+    },
+    guardShield: {
+        creationRate: 20 // % percent
+    },
+    spaceshipShield: {
+        creationRate: 10 // % percent
+    }
+},
+// lvl 2
+{
+    time: 2,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 85
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 13,
+        creationRate: 20 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 40
+    },
+    guardShield: {
+        creationRate: 20
+    },
+    spaceshipShield: {
+        creationRate: 12
+    }
+},
+// lvl 3
+{
+    time: 2,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 85
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 13,
+        creationRate: 25 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 40
+    },
+    guardShield: {
+        creationRate: 22
+    },
+    spaceshipShield: {
+        creationRate: 15
+    }
+},
+// lvl 4
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 90
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 8 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 35 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 45
+    },
+    guardShield: {
+        creationRate: 30
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 5
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 90
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 6
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 7
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 8
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 95
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 9
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 100
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+},
+// lvl 10
+{
+    time: 3,
+    background: 'img-path',
+    guard: {
+        shield: 100,
+        defuseRadius: 110
+    },
+    spaceship: {
+        shield: 100
+    },
+    comet: {
+        speed: 9 * _Constants.SCALE,
+        damage: 20,
+        creationRate: 40 // if higher less will be created
+    },
+    bomb: {
+        creationRate: 50
+    },
+    guardShield: {
+        creationRate: 35
+    },
+    spaceshipShield: {
+        creationRate: 25
+    }
+}]; /* ----------------------------------------------------------------------------
+     * Spaceguard - Arcade Space Game written in JavaScript
+     *
+     * @package     Spaceguard
+     * @author      A.Tselegidis <alextselegidis@gmail.com>
+     * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+     * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+     * @link        http://alextselegidis.com/spaceguard
+     * ---------------------------------------------------------------------------- */
 
-var _Environment = __webpack_require__(0);
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _Spaceguard = __webpack_require__(3);
+
+var _Spaceguard2 = _interopRequireDefault(_Spaceguard);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+window.spaceguard = new _Spaceguard2.default(); /* ----------------------------------------------------------------------------
+                                                 * Spaceguard - Arcade Space Game written in JavaScript
+                                                 *
+                                                 * @package     Spaceguard
+                                                 * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                 * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                 * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                 * @link        http://alextselegidis.com/spaceguard
+                                                 * ---------------------------------------------------------------------------- */
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* ----------------------------------------------------------------------------
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Spaceguard - Arcade Space Game written in JavaScript
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @package     Spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @link        http://alextselegidis.com/spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * ---------------------------------------------------------------------------- */
+
+var _Constants = __webpack_require__(0);
+
+var _Environment = __webpack_require__(4);
 
 var _Environment2 = _interopRequireDefault(_Environment);
 
-var _Comet = __webpack_require__(4);
+var _Sprites = __webpack_require__(5);
+
+var _Sprites2 = _interopRequireDefault(_Sprites);
+
+var _Levels = __webpack_require__(1);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+var _Comet = __webpack_require__(6);
 
 var _Comet2 = _interopRequireDefault(_Comet);
 
-var _Bomb = __webpack_require__(5);
+var _Bomb = __webpack_require__(7);
 
 var _Bomb2 = _interopRequireDefault(_Bomb);
 
-var _StarshipShield = __webpack_require__(6);
+var _SpaceshipShield = __webpack_require__(8);
 
-var _StarshipShield2 = _interopRequireDefault(_StarshipShield);
+var _SpaceshipShield2 = _interopRequireDefault(_SpaceshipShield);
 
-var _GameSprites = __webpack_require__(7);
-
-var _GameSprites2 = _interopRequireDefault(_GameSprites);
-
-var _GuardShield = __webpack_require__(8);
+var _GuardShield = __webpack_require__(9);
 
 var _GuardShield2 = _interopRequireDefault(_GuardShield);
-
-var _Levels = __webpack_require__(10);
-
-var _Levels2 = _interopRequireDefault(_Levels);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -201,7 +489,7 @@ var Spaceguard = function () {
             shield: 100,
             defuseRadius: 50
         };
-        this.starship = {
+        this.spaceship = {
             x: undefined,
             y: undefined,
             width: 135 * _Constants.SCALE,
@@ -228,7 +516,8 @@ var Spaceguard = function () {
      * Initialize game platform.
      *
      * @param {string} canvasId Canvas DOM element.
-     * @returns {object} Returns game instance.
+     *
+     * @return {Object} Returns game instance.
      */
 
 
@@ -241,8 +530,8 @@ var Spaceguard = function () {
             this.ctx = this.canvas.getContext('2d');
 
             // load image sprites
-            _GameSprites2.default.forEach(function (sprite) {
-                // let sprite = GameSprites[i];
+            _Sprites2.default.forEach(function (sprite) {
+                // let sprite = Sprites[i];
                 var img = document.createElement('img');
                 img.id = sprite.id;
                 img.src = sprite.src;
@@ -251,7 +540,7 @@ var Spaceguard = function () {
                 _this.sprites[sprite.id] = img; // store the element handle for later use
 
                 // draw main screen when the images are finished loading
-                if (img.id == 'introScreen' && !_Environment2.default.isMobile()) {
+                if (img.id === 'introScreen' && !_Environment2.default.isMobile()) {
                     img.onload = function () {
                         _this.drawIntroScreen();
                     };
@@ -268,7 +557,7 @@ var Spaceguard = function () {
         /**
          * Load needed resource files - display initial screen to user.
          *
-         * @returns {object} Returns game instance.
+         * @return {Object} Returns game instance.
          */
         value: function load() {
             // init canvas
@@ -304,7 +593,8 @@ var Spaceguard = function () {
 
         /**
          * Execute main game loop.
-         * @returns {object} Returns game instance.
+         *
+         * @return {Object} Returns game instance.
          */
         value: function game() {
             var _this2 = this;
@@ -320,27 +610,27 @@ var Spaceguard = function () {
             this.guard.shield = _Levels2.default[this.level].guard.shield;
             this.guard.defuseRadius = _Levels2.default[this.level].guard.defuseRadius;
             this.guard.img = document.getElementById('guard');
-            this.starship.x = this.cx - this.starship.width / 2;
-            this.starship.y = this.cy - this.starship.height / 2;
-            this.starship.shield = _Levels2.default[this.level].starship.shield;
-            this.starship.img = document.getElementById('starship');
+            this.spaceship.x = this.cx - this.spaceship.width / 2;
+            this.spaceship.y = this.cy - this.spaceship.height / 2;
+            this.spaceship.shield = _Levels2.default[this.level].spaceship.shield;
+            this.spaceship.img = document.getElementById('spaceship');
 
-            // create comets
+            // Create comets.
             this.comets = [];
             for (var i = 0; i < 10; i++) {
                 this.comets.push(new _Comet2.default(this));
                 this.comets[i].position();
             }
 
-            // add event listeners
+            // Add event listeners.
             this.canvas.addEventListener('keyup', this.onKeyUp.bind(this));
             this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
             this.canvas.addEventListener('mouseout', this.onMouseOut.bind(this));
             this.canvas.style['cursor'] = 'none';
 
-            // splash screen
+            // Splash screen.
             this.splash('Level ' + (this.level + 1), 1000, function () {
-                requestAnimFrame(_this2.loop);
+                requestAnimationFrame(_this2.loop.bind(_this2));
             });
 
             return this;
@@ -356,8 +646,8 @@ var Spaceguard = function () {
             // Clear stuff
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // Starship
-            this.ctx.drawImage(this.sprites.starship, this.starship.x * _Constants.SCALE, this.starship.y * _Constants.SCALE);
+            // Spaceship
+            this.ctx.drawImage(this.sprites.spaceship, this.spaceship.x * _Constants.SCALE, this.spaceship.y * _Constants.SCALE);
         }
     }, {
         key: 'drawObjects',
@@ -389,9 +679,9 @@ var Spaceguard = function () {
                     _this3.score += _Constants.COMET_SCORE; // fixed value  
                 }
 
-                if (_this3.collides(comet, _this3.starship)) {
+                if (_this3.collides(comet, _this3.spaceship)) {
                     comet.destroyed = true;
-                    _this3.starship.shield -= comet.damage;
+                    _this3.spaceship.shield -= comet.damage;
                 }
 
                 if (comet.destroyed) {
@@ -403,7 +693,7 @@ var Spaceguard = function () {
 
             // When the level starts there is a creation barrier that will slowly fade.
             var time = this.datediff(new Date(), this.levelStartTime).ms;
-            creationBarrier = time < _Constants.CREATION_BARRIER_STEP ? (_Constants.CREATION_BARRIER_STEP - time) / 10 : 0;
+            var creationBarrier = time < _Constants.CREATION_BARRIER_STEP ? (_Constants.CREATION_BARRIER_STEP - time) / 10 : 0;
 
             // When the level is about to end then we need to stop once again the creation of new comets.
             if (time > _Constants.CREATION_BARRIER_STEP && _Levels2.default[this.level].time * 60 * 1000 - time < _Constants.CREATION_BARRIER_STEP) {
@@ -434,7 +724,7 @@ var Spaceguard = function () {
             if (roll) this.lastRollTime = new Date();
 
             // Create Bomb
-            rand = Math.round(Math.random() * 1000) + 1;
+            var rand = Math.round(Math.random() * 1000) + 1;
             if (rand >= this.convertRate(_Levels2.default[this.level].bomb.creationRate) && roll) {
                 this.randomObjects.push(new _Bomb2.default(this));
                 creation = true;
@@ -447,10 +737,10 @@ var Spaceguard = function () {
                 creation = true;
             }
 
-            // Create Starship Shield
+            // Create Spaceship Shield
             rand = Math.round(Math.random() * 1000) + 1;
-            if (rand >= this.convertRate(_Levels2.default[this.level].starshipShield.creationRate) && roll && !creation) {
-                this.randomObjects.push(new _StarshipShield2.default(this));
+            if (rand >= this.convertRate(_Levels2.default[this.level].spaceshipShield.creationRate) && roll && !creation) {
+                this.randomObjects.push(new _SpaceshipShield2.default(this));
                 creation = true;
             }
 
@@ -503,7 +793,7 @@ var Spaceguard = function () {
                 this.loop();
                 return;
             }
-            requestAnimFrame(this.pause, this.canvas);
+            requestAnimationFrame(this.pause.bind(this), this.canvas);
         }
     }, {
         key: 'loop',
@@ -513,9 +803,9 @@ var Spaceguard = function () {
          * Handles main game loop.
          */
         value: function loop() {
-            var message = void 0,
-                callback = void 0,
-                duration = void 0;
+            var message = void 0;
+            var callback = void 0;
+            var duration = void 0;
 
             if (this.onPause) {
                 this.canvas.style['cursor'] = 'default';
@@ -524,7 +814,9 @@ var Spaceguard = function () {
                 return;
             }
 
-            if (!this.onGame) return;
+            if (!this.onGame) {
+                return;
+            }
 
             if (this.datediff(new Date(), this.lastUpdateTime).ms > this.frameUpdateTime) {
                 this.drawBackground();
@@ -535,13 +827,13 @@ var Spaceguard = function () {
                 this.lastUpdateTime = new Date();
             }
 
-            if (this.guard.shield <= 0 || this.starship.shield <= 0) {
-                // reset game - game over
+            if (this.guard.shield <= 0 || this.spaceship.shield <= 0) {
+                // Reset game - game over
                 this.onGame = false;
                 this.onPause = false;
                 //this.level = 0; 
                 this.clearEventListeners();
-                message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Starship Destroyed!') + ' Score ' + this.score + ' (-50%)';
+                message = (this.guard.shield <= 0 ? 'Guard Destroyed!' : 'Spaceship Destroyed!') + ' Score ' + this.score + ' (-50%)';
                 this.splash(message, 2000, this.load);
                 this.score = this.score > 0 ? Math.round(this.score / 2) : 0; // if the player is destroyed he'll just lose half of his score
                 return;
@@ -553,21 +845,22 @@ var Spaceguard = function () {
 
                 if (this.level < _Levels2.default.length) {
                     message = 'Level Completed!';
-                    callback = this.game;
+                    callback = this.game.bind(this);
                     duration = 2000;
                     this.level++;
                 } else {
                     message = 'Congrats! You\'ve Completed All Game Levels - Score ' + this.score;
-                    callback = this.load;
+                    callback = this.load.bind(this);
                     duration = 5000;
                     this.level = 0;
                 }
 
                 this.splash(message, duration, callback);
+
                 return;
             }
 
-            requestAnimFrame(this.loop, this.canvas);
+            requestAnimationFrame(this.loop.bind(this), this.canvas);
         }
     }, {
         key: 'clearEventListeners',
@@ -589,6 +882,7 @@ var Spaceguard = function () {
 
         /**
          * On mouse move event handler.
+         *
          * @param event Event object.
          */
         value: function onMouseMove(event) {
@@ -601,6 +895,7 @@ var Spaceguard = function () {
 
         /**
          * On mouse out event handler.
+         *
          * @param event Event object.
          */
         value: function onMouseOut(event) {
@@ -612,6 +907,7 @@ var Spaceguard = function () {
 
         /**
          * On click event handler.
+         *
          * @param event Event object.
          */
         value: function onClick(event) {
@@ -629,6 +925,7 @@ var Spaceguard = function () {
 
         /**
          * On key up event handler.
+         *
          * @param event Event object.
          */
         value: function onKeyUp(event) {
@@ -648,7 +945,9 @@ var Spaceguard = function () {
 
         /**
          * On context menu pop up event handler.
-         * @param event Event object.
+         *
+         * @param {Event} event Event object.
+         *
          * @return {boolean} Returns false in order to disable the event.
          */
         value: function onContextMenu(event) {
@@ -663,8 +962,10 @@ var Spaceguard = function () {
 
         /**
          * Get date difference.
+         *
          * @param {Date} date1 First date object.
          * @param {Date} date2 Second date object.
+         *
          * @return {Object} Returns the date difference values.
          */
 
@@ -687,19 +988,21 @@ var Spaceguard = function () {
 
         /**
          * Check collision between objects.
-         * @param {object} obj1{x, y, width, height}
-         * @param {object} obj2{x, y, width, height}
-         * @returns {bool}
+         *
+         * @param {Object} obj1{x, y, width, height} First collision object.
+         * @param {Object} obj2{x, y, width, height} Second collision object.
+         *
+         * @return {boolean} Returns whether the objects collide or not.
          */
         value: function collides(obj1, obj2) {
             var x1 = void 0,
                 y1 = void 0,
                 w1 = void 0,
                 h1 = void 0; // obj1
-            var ox = void 0,
-                oy = void 0,
-                ow = void 0,
-                oh = void 0; // obj2
+            var x2 = void 0,
+                y2 = void 0,
+                w2 = void 0,
+                h2 = void 0; // obj2
 
             x1 = obj1.x;
             y1 = obj1.y;
@@ -720,6 +1023,7 @@ var Spaceguard = function () {
 
         /**
          * Draw game stats.
+         *
          * @param {boolean} onPause whether the game is on pause mode.
          */
         value: function drawStats(onPause) {
@@ -740,15 +1044,15 @@ var Spaceguard = function () {
             this.ctx.textAlign = 'right';
             this.ctx.lineWidth = '1';
             var gColor = this.getBarColor(this.guard.shield, onPause);
-            var sColor = this.getBarColor(this.starship.shield, onPause);
+            var sColor = this.getBarColor(this.spaceship.shield, onPause);
 
             this.ctx.fillStyle = gColor;
             this.ctx.fillText('Guard ' + this.guard.shield + '%', (this.canvas.width - 20) * _Constants.SCALE, 30 * _Constants.SCALE); // guard
             this.ctx.fillStyle = sColor;
-            this.ctx.fillText('Starship ' + this.starship.shield + '%', (this.canvas.width - 20) * _Constants.SCALE, 80 * _Constants.SCALE); // starship
+            this.ctx.fillText('Spaceship ' + this.spaceship.shield + '%', (this.canvas.width - 20) * _Constants.SCALE, 80 * _Constants.SCALE); // spaceship
 
             gColor = this.getBarColor(this.guard.shield, onPause, true);
-            sColor = this.getBarColor(this.starship.shield, onPause, true);
+            sColor = this.getBarColor(this.spaceship.shield, onPause, true);
 
             this.ctx.strokeStyle = gColor;
             this.ctx.strokeRect((this.canvas.width - 152) * _Constants.SCALE, 40, 130, 15);
@@ -758,7 +1062,7 @@ var Spaceguard = function () {
             this.ctx.strokeStyle = sColor;
             this.ctx.strokeRect((this.canvas.width - 152) * _Constants.SCALE, 90, 130, 15);
             this.ctx.fillStyle = sColor;
-            this.ctx.fillRect((this.canvas.width - 152) * _Constants.SCALE, 90, this.starship.shield / 100 * 130, 15);
+            this.ctx.fillRect((this.canvas.width - 152) * _Constants.SCALE, 90, this.spaceship.shield / 100 * 130, 15);
         }
     }, {
         key: 'getBarColor',
@@ -766,18 +1070,25 @@ var Spaceguard = function () {
 
         /**
          * Calculate the status bar colors.
+         *
          * @param {number} value Status bar value.
          * @param {boolean} onPause Whether the game is on pause mode.
          * @param {number} opaque Opacity levels.
+         *
          * @return {string} Returns the color value.
          */
         value: function getBarColor(value, onPause, opaque) {
             var color = void 0;
 
-            if (value > 70) color = !onPause && opaque ? 'rgba(92, 255, 201, 0.9)' : '#5CFFC9'; // cyan
-            else if (value > 40) color = !onPause && opaque ? 'rgba(92, 255, 143, 0.9)' : '#5CFF8F'; // green
-                else if (value > 15) color = !onPause && opaque ? 'rgba(255, 149, 92, 0.9)' : '#FF955C'; // orange
-                    else color = !onPause && opaque ? 'rgba(255, 92, 92, 0.9)' : '#FF5C5C'; // red
+            if (value > 70) {
+                color = !onPause && opaque ? 'rgba(92, 255, 201, 0.9)' : '#5CFFC9'; // cyan
+            } else if (value > 40) {
+                color = !onPause && opaque ? 'rgba(92, 255, 143, 0.9)' : '#5CFF8F'; // green
+            } else if (value > 15) {
+                color = !onPause && opaque ? 'rgba(255, 149, 92, 0.9)' : '#FF955C'; // orange
+            } else {
+                color = !onPause && opaque ? 'rgba(255, 92, 92, 0.9)' : '#FF5C5C'; // red
+            }
 
             return color;
         }
@@ -791,18 +1102,25 @@ var Spaceguard = function () {
         value: function defuseBomb() {
             var _this5 = this;
 
-            if (this.onDefuse) return false;
+            if (this.onDefuse) {
+                return false;
+            }
 
             this.onDefuse = true;
+
             var defuseInterval = setInterval(function () {
                 _this5.currentDefuseRadius++;
                 _this5.randomObjects.forEach(function (obj) {
-                    distance = Math.sqrt(Math.pow(_this5.guard.x + 15 - obj.x, 2) + Math.pow(_this5.guard.y + 15 - obj.y, 2));
+                    var distance = Math.sqrt(Math.pow(_this5.guard.x + 15 - obj.x, 2) + Math.pow(_this5.guard.y + 15 - obj.y, 2));
+
                     if (distance <= _this5.currentDefuseRadius) {
                         obj.destroyed = true;
-                        if (obj.type == _Constants.OBJ_TYPE_BOMB) _this5.score += _Constants.BOMB_SCORE;
+                        if (obj.type == _Constants.OBJ_TYPE_BOMB) {
+                            _this5.score += _Constants.BOMB_SCORE;
+                        }
                     }
                 });
+
                 if (_this5.currentDefuseRadius == _this5.guard.defuseRadius) {
                     clearInterval(defuseInterval);
                     _this5.currentDefuseRadius = 0;
@@ -816,14 +1134,16 @@ var Spaceguard = function () {
 
         /**
          * Display splash screen with a custom message.
+         *
          * @param {string} text The message to be displayed on the splash screen.
          * @param {int} duration The amount of time that the splash screen will remain on canvas.
-         * @param {function} callback This method will be called after the splash is finished.
+         * @param {Function} callback This method will be called after the splash is finished.
          */
         value: function splash(text, duration, callback) {
             var _this6 = this;
 
             var drawStartTime = new Date();
+
             var drawSplashScreen = function drawSplashScreen() {
                 _this6.ctx.fillStyle = 'black';
                 _this6.ctx.fillRect(0, 0, _this6.canvas.width * _Constants.SCALE, _this6.canvas.height * _Constants.SCALE);
@@ -834,12 +1154,15 @@ var Spaceguard = function () {
 
                 if (_this6.datediff(new Date(), drawStartTime).ms > duration) {
                     // end of splash screen
-                    if (callback) callback();
+                    if (callback) {
+                        callback();
+                    }
                     return;
                 }
 
-                requestAnimFrame(drawSplashScreen, _this6.canvas);
+                requestAnimationFrame(drawSplashScreen, _this6.canvas);
             };
+
             drawSplashScreen();
         }
     }, {
@@ -848,7 +1171,9 @@ var Spaceguard = function () {
 
         /**
          * Convert the creation rate from percentage into a value that will be compared with the random value.
+         *
          * @param {number} rate Creation rate in percentage.
+         *
          * @return {number} Returns the number that is going to be compared with the random value.
          */
         value: function convertRate(rate) {
@@ -865,7 +1190,7 @@ var Spaceguard = function () {
             this.ctx.fillStyle = '#515151';
             this.ctx.font = '8pt Arial';
             this.ctx.textAlign = 'right';
-            this.ctx.fillText('(C) Copyright ' + new Date().getFullYear() + ' - AlexTselegidis.Com', (this.canvas.width - 10) * _Constants.SCALE, (this.canvas.height - 10) * _Constants.SCALE);
+            this.ctx.fillText('Copyright © ' + new Date().getFullYear() + ' - alextselegidis.com', (this.canvas.width - 10) * _Constants.SCALE, (this.canvas.height - 10) * _Constants.SCALE);
         }
     }, {
         key: 'wrapText',
@@ -873,7 +1198,9 @@ var Spaceguard = function () {
 
         /**
          * Wrap text into the provided width.
+         *
          * {@link http://www.html5canvastutorials.com/tutorials/html5-canvas-wrap-text-tutorial}
+         *
          * @param {string} text Text to be wrapped.
          * @param {number} x Left position.
          * @param {number} y Top position.
@@ -926,33 +1253,6 @@ var Spaceguard = function () {
 exports.default = Spaceguard;
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// Global Constants
-var SCALE = exports.SCALE = 1;
-var CANVAS_WIDTH = exports.CANVAS_WIDTH = 800; // px
-var CANVAS_HEIGHT = exports.CANVAS_HEIGHT = 600; // px
-var KEY_ESCAPE = exports.KEY_ESCAPE = 27;
-var LOOP_DELAY = exports.LOOP_DELAY = 10;
-var GUARD_SHIELD_BASE = exports.GUARD_SHIELD_BASE = 10;
-var STARSHIP_SHIELD_BASE = exports.STARSHIP_SHIELD_BASE = 10;
-var COMET_SCORE = exports.COMET_SCORE = 5;
-var SHIELD_SCORE = exports.SHIELD_SCORE = 3;
-var BOMB_SCORE = exports.BOMB_SCORE = 5;
-var LEVEL_SCORE = exports.LEVEL_SCORE = 100;
-var CREATION_BARRIER_STEP = exports.CREATION_BARRIER_STEP = 5000;
-var OBJ_TYPE_BOMB = exports.OBJ_TYPE_BOMB = 'bomb';
-var OBJ_TYPE_GSHIELD = exports.OBJ_TYPE_GSHIELD = 'gshield';
-var OBJ_TYPE_SSHIELD = exports.OBJ_TYPE_SSHIELD = 'sshield';
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -962,89 +1262,87 @@ var OBJ_TYPE_SSHIELD = exports.OBJ_TYPE_SSHIELD = 'sshield';
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-exports.default = function (spaceguard) {
-    this.sg = spaceguard;
-    this.x;
-    this.y;
-    this.a; // extra direction handling
-    this.width = 60 * _Constants.SCALE;
-    this.height = 60 * _Constants.SCALE;
-    this.speedX = _Levels2.default[this.sg.level].comet.speed * Math.random();
-    this.speedY = _Levels2.default[this.sg.level].comet.speed * Math.random();
-    this.damage = Math.floor(Math.random() * _Levels2.default[this.sg.level].comet.damage);
-    this.dfs = 30 * _Constants.SCALE; // initial distance from scene
-    this.destroyed = false;
-
-    this.position = function () {
-        var canvasSide = Math.ceil(Math.random() * 4);
-
-        switch (canvasSide) {
-            case 1:
-                // top
-                this.y = -1 * this.dfs;
-                this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
-                if (this.x > this.sg.canvas.width / 2) this.speedX = -1 * this.speedX;
-                this.speedY = -1 * this.speedY;
-                break;
-            case 2:
-                // right
-                this.x = spaceguard.canvas.width + this.dfs;
-                this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
-                if (this.y > this.sg.canvas.height / 2) this.speedY = -1 * this.speedY;
-                this.speedX = -1 * this.speedX;
-                break;
-            case 3:
-                // bottom
-                this.y = spaceguard.canvas.height + this.dfs;
-                this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
-                if (this.x > this.sg.canvas.width / 2) this.speedX = -1 * this.speedX;
-                break;
-            case 4:
-                // left
-                this.x = -1 * this.dfs;
-                this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
-                if (this.y > this.sg.canvas.height / 2) this.speedY = -1 * this.speedY;
-        }
-
-        this.a = Math.random() * 1;
-    };
-
-    this.draw = function () {
-        // move
-        this.x += this.a * Math.ceil(Math.random() * this.speedX) + Math.round(this.speedX / 2);
-        this.y += this.a * Math.ceil(Math.random() * this.speedY) + Math.round(this.speedY / 2);
-
-        // check if comet is out of map
-        this.isOutOfMap();
-
-        // draw
-        this.sg.ctx.drawImage(this.sg.sprites.comet, this.x, this.y);
-    };
-
-    this.isOutOfMap = function () {
-        // if the comet is too far from the map frame it means that
-        // it needs to be destroyed cause it will no longer play any
-        // part on the game
-        var dist = Math.abs(Math.sqrt(Math.pow(this.x - this.sg.cx, 2) + Math.pow(this.y - this.sg.cy, 2)));
-        if (dist > this.sg.canvas.width) this.destroyed = true;
-    };
-};
-
-var _Constants = __webpack_require__(3);
-
-var _Levels = __webpack_require__(10);
-
-var _Levels2 = _interopRequireDefault(_Levels);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-;
+/* ----------------------------------------------------------------------------
+ * Spaceguard - Arcade Space Game written in JavaScript
+ *
+ * @package     Spaceguard
+ * @author      A.Tselegidis <alextselegidis@gmail.com>
+ * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+ * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+ * @link        http://alextselegidis.com/spaceguard
+ * ---------------------------------------------------------------------------- */
 
 /**
- * Handles the comets animation.
- * @param {Spaceguard} spaceguard Spaceguard game instance.
+ * Check user agent device type.
+ *
+ * {@link http://stackoverflow.com/a/16755700/1718162}
  */
+exports.default = {
+    // Mobile or desktop compatible event name, to be used with '.on' function.
+    TOUCH_DOWN_EVENT_NAME: 'mousedown touchstart',
+    TOUCH_UP_EVENT_NAME: 'mouseup touchend',
+    TOUCH_MOVE_EVENT_NAME: 'mousemove touchmove',
+    TOUCH_DOUBLE_TAB_EVENT_NAME: 'dblclick dbltap',
+
+    /**
+     * Check whether user agent is an Android browser.
+     *
+     * @return {string[]|null}
+     */
+    isAndroid: function isAndroid() {
+        return navigator.userAgent.match(/Android/i);
+    },
+
+
+    /**
+     * Check whether user agent is a Black Berry browser.
+     *
+     * @return {string[]|null}
+     */
+    isBlackBerry: function isBlackBerry() {
+        return navigator.userAgent.match(/BlackBerry/i);
+    },
+
+
+    /**
+     * Check whether user agent is an iOS browser.
+     *
+     * @return {string[]|null}
+     */
+    isIOS: function isIOS() {
+        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+    },
+
+
+    /**
+     * Check whether user agent is an Opera browser.
+     *
+     * @return {string[]|null}
+     */
+    isOpera: function isOpera() {
+        return navigator.userAgent.match(/Opera Mini/i);
+    },
+
+
+    /**
+     * Check whether user agent is a Windows browser.
+     *
+     * @return {string[]|null}
+     */
+    isWindows: function isWindows() {
+        return navigator.userAgent.match(/IEMobile/i);
+    },
+
+
+    /**
+     * Check whether user agent is a Mobile browser.
+     *
+     * @return {string[]|null}
+     */
+    isMobile: function isMobile() {
+        return this.isAndroid() || this.isBlackBerry() || this.isIOS() || this.isOpera() || this.isWindows();
+    }
+};
 
 /***/ }),
 /* 5 */
@@ -1056,95 +1354,23 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+/* ----------------------------------------------------------------------------
+ * Spaceguard - Arcade Space Game written in JavaScript
+ *
+ * @package     Spaceguard
+ * @author      A.Tselegidis <alextselegidis@gmail.com>
+ * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+ * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+ * @link        http://alextselegidis.com/spaceguard
+ * ---------------------------------------------------------------------------- */
 
-exports.default = function (spaceguard) {
-    this.sg = spaceguard;
-    this.type = OBJ_TYPE_BOMB;
-    this.color = '#6C17AD';
-    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
-    this.width = 30 * _Constants.SCALE;
-    this.height = 30 * _Constants.SCALE;
-    this.damage = 20; // base damage value
-    this.value = Math.ceil(Math.random() * this.damage) + this.damage;
-
-    this.trigger = function () {
-        this.sg.guard.shield -= this.value;
-        this.destroyed = true;
-    };
-};
-
-var _Constants = __webpack_require__(3);
-
-;
-
-/**
- * Bomb that explodes when the guard collides with it (RANDOM OBJECT).
- * @param {Spaceguard} spaceguard Spaceguard game instance.
- */
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-exports.default = function (spaceguard) {
-    this.sg = spaceguard;
-    this.type = OBJ_TYPE_SSHIELD;
-    this.color = '#36EB57';
-    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
-    this.width = 30 * _Constants.SCALE;
-    this.height = 30 * _Constants.SCALE;
-    this.shield = 10; // base power up value
-    this.value = Math.round(Math.random() * this.shield) + this.shield;
-
-    this.trigger = function () {
-        this.sg.starship.shield += this.value;
-        if (this.sg.starship.shield > _Levels2.default[this.sg.level].starship.shield) this.sg.starship.shield = _Levels2.default[this.sg.level].starship.shield;
-        this.sg.score += SHIELD_SCORE;
-        this.destroyed = true;
-    };
-};
-
-var _Constants = __webpack_require__(3);
-
-var _Levels = __webpack_require__(10);
-
-var _Levels2 = _interopRequireDefault(_Levels);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-;
-
-/**
- * Starship shield power up.
- * @param {Spaceguard} spaceguard Spaceguard game instance.
- */
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 /**
  * Sprites Definition
  *
  * All the game sprites are loaded dynamically by this script. Just
  * add a new item on the array.
  *
- * @type {Array}
+ * @type {Object[]}
  */
 exports.default = [{
     id: 'guard',
@@ -1162,12 +1388,228 @@ exports.default = [{
     id: 'sshield',
     src: 'images/sshield.png'
 }, {
-    id: 'starship',
-    src: 'images/starship.png'
+    id: 'spaceship',
+    src: 'images/spaceship.png'
 }, {
     id: 'introScreen',
-    src: 'images/introScreen.png'
+    src: 'images/intro-screen.png'
 }];
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* ----------------------------------------------------------------------------
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Spaceguard - Arcade Space Game written in JavaScript
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @package     Spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @link        http://alextselegidis.com/spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * ---------------------------------------------------------------------------- */
+
+var _Constants = __webpack_require__(0);
+
+var _Levels = __webpack_require__(1);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Comet Class
+ *
+ * Space objects that involve damage to the guard and the spaceship.
+ */
+var Comet = function () {
+    /**
+     * Class constructor.
+     *
+     * @param {Spaceguard} spaceguard Spaceguard game instance.
+     */
+    function Comet(spaceguard) {
+        _classCallCheck(this, Comet);
+
+        this.spaceguard = spaceguard;
+        this.x;
+        this.y;
+        this.a; // extra direction handling
+        this.width = 60 * _Constants.SCALE;
+        this.height = 60 * _Constants.SCALE;
+        this.speedX = _Levels2.default[this.spaceguard.level].comet.speed * Math.random();
+        this.speedY = _Levels2.default[this.spaceguard.level].comet.speed * Math.random();
+        this.damage = Math.floor(Math.random() * _Levels2.default[this.spaceguard.level].comet.damage);
+        this.dfs = 30 * _Constants.SCALE; // initial distance from scene
+        this.destroyed = false;
+    }
+
+    /**
+     * Update comet position on screen.
+     */
+
+
+    _createClass(Comet, [{
+        key: 'position',
+        value: function position() {
+            var canvasSide = Math.ceil(Math.random() * 4);
+
+            switch (canvasSide) {
+                case 1:
+                    // top
+                    this.y = -1 * this.dfs;
+                    this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
+                    if (this.x > this.spaceguard.canvas.width / 2) {
+                        this.speedX = -1 * this.speedX;
+                    }
+                    this.speedY = -1 * this.speedY;
+                    break;
+                case 2:
+                    // right
+                    this.x = spaceguard.canvas.width + this.dfs;
+                    this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
+                    if (this.y > this.spaceguard.canvas.height / 2) {
+                        this.speedY = -1 * this.speedY;
+                    }
+                    this.speedX = -1 * this.speedX;
+                    break;
+                case 3:
+                    // bottom
+                    this.y = spaceguard.canvas.height + this.dfs;
+                    this.x = Math.ceil(Math.random() * spaceguard.canvas.width);
+                    if (this.x > this.spaceguard.canvas.width / 2) {
+                        this.speedX = -1 * this.speedX;
+                    }
+                    break;
+                case 4:
+                    // left
+                    this.x = -1 * this.dfs;
+                    this.y = Math.ceil(Math.random() * spaceguard.canvas.height);
+                    if (this.y > this.spaceguard.canvas.height / 2) {
+                        this.speedY = -1 * this.speedY;
+                    }
+            }
+
+            this.a = Math.random() * 1;
+        }
+
+        /**
+         * Draw comet object on screen.
+         */
+
+    }, {
+        key: 'draw',
+        value: function draw() {
+            // Move
+            this.x += this.a * Math.ceil(Math.random() * this.speedX) + Math.round(this.speedX / 2);
+            this.y += this.a * Math.ceil(Math.random() * this.speedY) + Math.round(this.speedY / 2);
+
+            // Check if comet is out of map
+            this.isOutOfMap();
+
+            // Draw
+            this.spaceguard.ctx.drawImage(this.spaceguard.sprites.comet, this.x, this.y);
+        }
+
+        /**
+         * Check whether the comet has gone out of the map.
+         */
+
+    }, {
+        key: 'isOutOfMap',
+        value: function isOutOfMap() {
+            // If the comet is too far from the map frame it means that it needs to be destroyed cause it will
+            // no longer play any part on the game.
+            var dist = Math.abs(Math.sqrt(Math.pow(this.x - this.spaceguard.cx, 2) + Math.pow(this.y - this.spaceguard.cy, 2)));
+
+            if (dist > this.spaceguard.canvas.width) {
+                this.destroyed = true;
+            }
+        }
+    }]);
+
+    return Comet;
+}();
+
+exports.default = Comet;
+;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* ----------------------------------------------------------------------------
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Spaceguard - Arcade Space Game written in JavaScript
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @package     Spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @link        http://alextselegidis.com/spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * ---------------------------------------------------------------------------- */
+
+var _Constants = __webpack_require__(0);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Bomb Class
+ *
+ * Space object that explodes when the guard collides with it.
+ */
+var Bomb = function () {
+  /**
+   * Class constructor.
+   *
+   * @param {Spaceguard} spaceguard Spaceguard game instance.
+   */
+  function Bomb(spaceguard) {
+    _classCallCheck(this, Bomb);
+
+    this.spaceguard = spaceguard;
+    this.type = _Constants.OBJ_TYPE_BOMB;
+    this.x = Math.round(Math.random() * this.spaceguard.canvas.width * _Constants.SCALE);
+    this.y = Math.round(Math.random() * this.spaceguard.canvas.height * _Constants.SCALE);
+    this.width = 30 * _Constants.SCALE;
+    this.height = 30 * _Constants.SCALE;
+    this.damage = 20; // base damage value
+    this.value = Math.ceil(Math.random() * this.damage) + this.damage;
+  }
+
+  /**
+   * Trigger bomb object.
+   */
+
+
+  _createClass(Bomb, [{
+    key: 'trigger',
+    value: function trigger() {
+      this.spaceguard.guard.shield -= this.value;
+      this.destroyed = true;
+    }
+  }]);
+
+  return Bomb;
+}();
+
+exports.default = Bomb;
+;
 
 /***/ }),
 /* 8 */
@@ -1180,44 +1622,75 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-exports.default = function (spaceguard) {
-    this.sg = spaceguard;
-    this.type = OBJ_TYPE_GSHIELD;
-    this.color = '#36BDEB';
-    this.destroyed = false;
-    this.x = Math.round(Math.random() * this.sg.canvas.width * _Constants.SCALE);
-    this.y = Math.round(Math.random() * this.sg.canvas.height * _Constants.SCALE);
-    this.width = 30 * _Constants.SCALE;
-    this.height = 30 * _Constants.SCALE;
-    this.shield = 10; // base power up value
-    this.value = Math.round(Math.random() * this.shield) + this.shield;
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* ----------------------------------------------------------------------------
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Spaceguard - Arcade Space Game written in JavaScript
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @package     Spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @link        http://alextselegidis.com/spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * ---------------------------------------------------------------------------- */
 
-    this.trigger = function () {
-        this.sg.guard.shield += this.value;
-        if (this.sg.guard.shield > _Levels2.default[this.sg.level].guard.shield) this.sg.guard.shield = _Levels2.default[this.sg.level].guard.shield;
-        this.sg.score += SHIELD_SCORE;
-        this.destroyed = true;
-    };
-};
+var _Constants = __webpack_require__(0);
 
-var _Constants = __webpack_require__(3);
-
-var _Levels = __webpack_require__(10);
+var _Levels = __webpack_require__(1);
 
 var _Levels2 = _interopRequireDefault(_Levels);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * Guard shield power up.
- * @param {Spaceguard} spaceguard Spaceguard game instance.
+ * Spaceship Shield Class
+ *
+ * Power up that increases the spaceship shields.
  */
+var Spaceguard = function () {
+    /**
+     * Class constructor.
+     *
+     * @param {Spaceguard} spaceguard Spaceguard game instance.
+     */
+    function Spaceguard(spaceguard) {
+        _classCallCheck(this, Spaceguard);
+
+        this.spaceguard = spaceguard;
+        this.type = _Constants.OBJ_TYPE_SSHIELD;
+        this.x = Math.round(Math.random() * this.spaceguard.canvas.width * _Constants.SCALE);
+        this.y = Math.round(Math.random() * this.spaceguard.canvas.height * _Constants.SCALE);
+        this.width = 30 * _Constants.SCALE;
+        this.height = 30 * _Constants.SCALE;
+        this.shield = 10; // base power up value
+        this.value = Math.round(Math.random() * this.shield) + this.shield;
+    }
+
+    /**
+     * Trigger Spaceship Shield object.
+     */
+
+
+    _createClass(Spaceguard, [{
+        key: 'trigger',
+        value: function trigger() {
+            this.spaceguard.spaceship.shield += this.value;
+            if (this.spaceguard.spaceship.shield > _Levels2.default[this.spaceguard.level].spaceship.shield) {
+                this.spaceguard.spaceship.shield = _Levels2.default[this.spaceguard.level].spaceship.shield;
+            }
+            this.spaceguard.score += _Constants.SHIELD_SCORE;
+            this.destroyed = true;
+        }
+    }]);
+
+    return Spaceguard;
+}();
+
+exports.default = Spaceguard;
+;
 
 /***/ }),
-/* 9 */,
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1227,277 +1700,73 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _Constants = __webpack_require__(3);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* ----------------------------------------------------------------------------
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Spaceguard - Arcade Space Game written in JavaScript
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @package     Spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author      A.Tselegidis <alextselegidis@gmail.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @copyright   Copyright (c) 2013 - 2017, Alex Tselegidis
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license     http://opensource.org/licenses/GPL-3.0 - GPLv3
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @link        http://alextselegidis.com/spaceguard
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * ---------------------------------------------------------------------------- */
+
+var _Constants = __webpack_require__(0);
+
+var _Levels = __webpack_require__(1);
+
+var _Levels2 = _interopRequireDefault(_Levels);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * Game levels definition.
+ * Guard Shield Class
  *
- * Adjusts the way Spaceguard is going to handle each level. The game should become more and more hard to
- * play as the user progress advances.
- *
- * @type {Object[]}
+ * Power up that increases the guard shields.
  */
-exports.default = [
-// lvl 1
-{
-    time: 1, // minutes
-    background: 'img-path', // image element id
-    guard: {
-        shield: 100, // % percent
-        defuseRadius: 80
-    },
-    starship: {
-        shield: 100 // % percent
-    },
-    comet: {
-        speed: 7 * _Constants.SCALE, // points
-        damage: 10, // points
-        creationRate: 15 // % percent
-    },
-    bomb: {
-        creationRate: 35 // % percent
-    },
-    guardShield: {
-        creationRate: 20 // % percent
-    },
-    starshipShield: {
-        creationRate: 10 // % percent
+var GuardShield = function () {
+    /**
+     * Class constructor.
+     *
+     * @param {Spaceguard} spaceguard Spaceguard game instance.
+     */
+    function GuardShield(spaceguard) {
+        _classCallCheck(this, GuardShield);
+
+        this.spaceguard = spaceguard;
+        this.type = _Constants.OBJ_TYPE_GSHIELD;
+        this.destroyed = false;
+        this.x = Math.round(Math.random() * this.spaceguard.canvas.width * _Constants.SCALE);
+        this.y = Math.round(Math.random() * this.spaceguard.canvas.height * _Constants.SCALE);
+        this.width = 30 * _Constants.SCALE;
+        this.height = 30 * _Constants.SCALE;
+        this.shield = 10; // base power up value
+        this.value = Math.round(Math.random() * this.shield) + this.shield;
     }
-},
-// lvl 2
-{
-    time: 2,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 85
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 8 * _Constants.SCALE,
-        damage: 13,
-        creationRate: 20 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 40
-    },
-    guardShield: {
-        creationRate: 20
-    },
-    starshipShield: {
-        creationRate: 12
-    }
-},
-// lvl 3
-{
-    time: 2,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 85
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 8 * _Constants.SCALE,
-        damage: 13,
-        creationRate: 25 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 40
-    },
-    guardShield: {
-        creationRate: 22
-    },
-    starshipShield: {
-        creationRate: 15
-    }
-},
-// lvl 4
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 90
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 8 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 35 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 45
-    },
-    guardShield: {
-        creationRate: 30
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 5
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 90
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 6
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 95
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 7
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 95
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 8
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 95
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 9
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 100
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-},
-// lvl 10
-{
-    time: 3,
-    background: 'img-path',
-    guard: {
-        shield: 100,
-        defuseRadius: 110
-    },
-    starship: {
-        shield: 100
-    },
-    comet: {
-        speed: 9 * _Constants.SCALE,
-        damage: 20,
-        creationRate: 40 // if higher less will be created
-    },
-    bomb: {
-        creationRate: 50
-    },
-    guardShield: {
-        creationRate: 35
-    },
-    starshipShield: {
-        creationRate: 25
-    }
-}];
+
+    /**
+     * Trigger GuardShield object.
+     */
+
+
+    _createClass(GuardShield, [{
+        key: 'trigger',
+        value: function trigger() {
+            this.spaceguard.guard.shield += this.value;
+            if (this.spaceguard.guard.shield > _Levels2.default[this.spaceguard.level].guard.shield) {
+                this.spaceguard.guard.shield = _Levels2.default[this.spaceguard.level].guard.shield;
+            }
+            this.spaceguard.score += _Constants.SHIELD_SCORE;
+            this.destroyed = true;
+        }
+    }]);
+
+    return GuardShield;
+}();
+
+exports.default = GuardShield;
+;
 
 /***/ })
 /******/ ]);
