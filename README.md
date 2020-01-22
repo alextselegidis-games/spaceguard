@@ -5,12 +5,12 @@
         </a>
         <br>
         <br>
-        Spaceguard (Arcade Game)
+        Spaceguard
     <br>
 </h1>
 
 <h4 align="center">
-    SpaceGuard is a simple canvas game made with plain JavaScript. 
+    Spaceguard is a canvas game made with plain JavaScript. 
 </h4>
 
 <h4 align="center">
